@@ -1,0 +1,11 @@
+C:\Users\vinodmataprasad.pal.PROD\AppData\Local\Temp\MyWebApp\MyWebApp.exe
+C:\Users\vinodmataprasad.pal.PROD\AppData\Local\Temp\MyWebApp\appsettings.Development.json
+C:\Users\vinodmataprasad.pal.PROD\AppData\Local\Temp\MyWebApp\appsettings.json
+C:\Users\vinodmataprasad.pal.PROD\AppData\Local\Temp\MyWebApp\MyWebApp.dll
+C:\Users\vinodmataprasad.pal.PROD\AppData\Local\Temp\MyWebApp\MyWebApp.deps.json
+C:\Users\vinodmataprasad.pal.PROD\AppData\Local\Temp\MyWebApp\MyWebApp.runtimeconfig.json
+C:\Users\vinodmataprasad.pal.PROD\AppData\Local\Temp\MyWebApp\MyWebApp.pdb
+C:\Users\vinodmataprasad.pal.PROD\AppData\Local\Temp\MyWebApp\Microsoft.OpenApi.dll
+C:\Users\vinodmataprasad.pal.PROD\AppData\Local\Temp\MyWebApp\Swashbuckle.AspNetCore.Swagger.dll
+C:\Users\vinodmataprasad.pal.PROD\AppData\Local\Temp\MyWebApp\Swashbuckle.AspNetCore.SwaggerGen.dll
+C:\Users\vinodmataprasad.pal.PROD\AppData\Local\Temp\MyWebApp\Swashbuckle.AspNetCore.SwaggerUI.dll

@@ -1,0 +1,268 @@
+Initiating the scan...
+26-08-2024 19:27:26: Initiating ths scan...
+26-08-2024 19:27:26: 1 projects will be scanned
+26-08-2024 19:27:36: Executing command: C:\Users\vinodmataprasad.pal.PROD\.appscan\SAClientUtil.8.0.1567\bin\appscan prepare -c C:\projects\WebApplication1\.scan\logs_20240826_192726\config.xml -d C:\projects\WebApplication1\.scan\logs_20240826_192726 -n classlibrary_scan.irx 
+26-08-2024 19:27:36: Output: A configuration file was found: C:\projects\WebApplication1\.scan\logs_20240826_192726\config.xml
+26-08-2024 19:27:36: Output: Processing configuration file...
+26-08-2024 19:27:36: Output: Discovering targets...
+26-08-2024 19:27:36: Output: MyWebApp.deps.json targets added.
+26-08-2024 19:27:37: Output: Target added: bin
+26-08-2024 19:27:37: Output: Validating...
+26-08-2024 19:27:37: Output: Validating ThirdPartyLib...
+26-08-2024 19:27:37: Output: 0%
+26-08-2024 19:27:37: Output: Validating bin...
+26-08-2024 19:28:05: Output: 0%
+26-08-2024 19:28:05: Output: Validating Antlr3.Runtime.dll...
+26-08-2024 19:28:05: Output: 1%
+26-08-2024 19:28:05: Output: Validating App_global.asax.dll...
+26-08-2024 19:28:05: Output: 3%
+26-08-2024 19:28:05: Output: Validating App_Web_3h1fur1i.dll...
+26-08-2024 19:28:05: Output: 5%
+26-08-2024 19:28:05: Output: Validating App_Web_m4l0jxp2.dll...
+26-08-2024 19:28:05: Output: 7%
+26-08-2024 19:28:05: Output: Validating App_Web_y0rad3ua.dll...
+26-08-2024 19:28:05: Output: 9%
+26-08-2024 19:28:05: Output: Validating DotnetFrameworkWebApp.dll...
+26-08-2024 19:28:05: Output: 11%
+26-08-2024 19:28:05: Output: Validating Microsoft.CodeDom.Providers.DotNetCompilerPlatform.dll...
+26-08-2024 19:28:05: Output: 12%
+26-08-2024 19:28:05: Output: Validating Microsoft.Web.Infrastructure.dll...
+26-08-2024 19:28:05: Output: 14%
+26-08-2024 19:28:05: Output: Validating Newtonsoft.Json.dll...
+26-08-2024 19:28:05: Output: 16%
+26-08-2024 19:28:05: Output: Validating csc.exe...
+26-08-2024 19:28:05: Output: 18%
+26-08-2024 19:28:05: Output: Validating csi.exe...
+26-08-2024 19:28:05: Output: 20%
+26-08-2024 19:28:05: Output: Validating Microsoft.Build.Tasks.CodeAnalysis.dll...
+26-08-2024 19:28:05: Output: 22%
+26-08-2024 19:28:05: Output: Validating Microsoft.CodeAnalysis.CSharp.dll...
+26-08-2024 19:28:05: Output: 24%
+26-08-2024 19:28:05: Output: Validating Microsoft.CodeAnalysis.CSharp.Scripting.dll...
+26-08-2024 19:28:05: Output: 25%
+26-08-2024 19:28:05: Output: Validating Microsoft.CodeAnalysis.dll...
+26-08-2024 19:28:05: Output: 27%
+26-08-2024 19:28:05: Output: Validating Microsoft.CodeAnalysis.Scripting.dll...
+26-08-2024 19:28:05: Output: 29%
+26-08-2024 19:28:05: Output: Validating Microsoft.CodeAnalysis.VisualBasic.dll...
+26-08-2024 19:28:05: Output: 31%
+26-08-2024 19:28:05: Output: Validating Microsoft.Win32.Primitives.dll...
+26-08-2024 19:28:05: Output: 33%
+26-08-2024 19:28:05: Output: Validating System.AppContext.dll...
+26-08-2024 19:28:05: Output: 35%
+26-08-2024 19:28:05: Output: Validating System.Collections.Immutable.dll...
+26-08-2024 19:28:05: Output: 37%
+26-08-2024 19:28:05: Output: Validating System.Console.dll...
+26-08-2024 19:28:05: Output: 38%
+26-08-2024 19:28:05: Output: Validating System.Diagnostics.DiagnosticSource.dll...
+26-08-2024 19:28:05: Output: 40%
+26-08-2024 19:28:05: Output: Validating System.Diagnostics.FileVersionInfo.dll...
+26-08-2024 19:28:05: Output: 42%
+26-08-2024 19:28:05: Output: Validating System.Diagnostics.StackTrace.dll...
+26-08-2024 19:28:05: Output: 44%
+26-08-2024 19:28:05: Output: Validating System.Globalization.Calendars.dll...
+26-08-2024 19:28:05: Output: 46%
+26-08-2024 19:28:05: Output: Validating System.IO.Compression.dll...
+26-08-2024 19:28:05: Output: 48%
+26-08-2024 19:28:05: Output: Validating System.IO.Compression.ZipFile.dll...
+26-08-2024 19:28:05: Output: 50%
+26-08-2024 19:28:05: Output: Validating System.IO.FileSystem.dll...
+26-08-2024 19:28:05: Output: 51%
+26-08-2024 19:28:05: Output: Validating System.IO.FileSystem.Primitives.dll...
+26-08-2024 19:28:05: Output: 53%
+26-08-2024 19:28:05: Output: Validating System.Net.Http.dll...
+26-08-2024 19:28:05: Output: 55%
+26-08-2024 19:28:05: Output: Validating System.Net.Sockets.dll...
+26-08-2024 19:28:05: Output: 57%
+26-08-2024 19:28:05: Output: Validating System.Reflection.Metadata.dll...
+26-08-2024 19:28:05: Output: 59%
+26-08-2024 19:28:05: Output: Validating System.Runtime.InteropServices.RuntimeInformation.dll...
+26-08-2024 19:28:05: Output: 61%
+26-08-2024 19:28:05: Output: Validating System.Security.Cryptography.Algorithms.dll...
+26-08-2024 19:28:05: Output: 62%
+26-08-2024 19:28:05: Output: Validating System.Security.Cryptography.Encoding.dll...
+26-08-2024 19:28:05: Output: 64%
+26-08-2024 19:28:05: Output: Validating System.Security.Cryptography.Primitives.dll...
+26-08-2024 19:28:05: Output: 66%
+26-08-2024 19:28:05: Output: Validating System.Security.Cryptography.X509Certificates.dll...
+26-08-2024 19:28:05: Output: 68%
+26-08-2024 19:28:05: Output: Validating System.Text.Encoding.CodePages.dll...
+26-08-2024 19:28:05: Output: 70%
+26-08-2024 19:28:05: Output: Validating System.Threading.Tasks.Extensions.dll...
+26-08-2024 19:28:05: Output: 72%
+26-08-2024 19:28:05: Output: Validating System.ValueTuple.dll...
+26-08-2024 19:28:05: Output: 74%
+26-08-2024 19:28:05: Output: Validating System.Xml.ReaderWriter.dll...
+26-08-2024 19:28:05: Output: 75%
+26-08-2024 19:28:05: Output: Validating System.Xml.XmlDocument.dll...
+26-08-2024 19:28:05: Output: 77%
+26-08-2024 19:28:05: Output: Validating System.Xml.XPath.dll...
+26-08-2024 19:28:05: Output: 79%
+26-08-2024 19:28:05: Output: Validating System.Xml.XPath.XDocument.dll...
+26-08-2024 19:28:05: Output: 81%
+26-08-2024 19:28:05: Output: Validating vbc.exe...
+26-08-2024 19:28:05: Output: 83%
+26-08-2024 19:28:05: Output: Validating VBCSCompiler.exe...
+26-08-2024 19:28:05: Output: 85%
+26-08-2024 19:28:05: Output: Validating System.Web.Helpers.dll...
+26-08-2024 19:28:05: Output: 87%
+26-08-2024 19:28:05: Output: Validating System.Web.Mvc.dll...
+26-08-2024 19:28:05: Output: 88%
+26-08-2024 19:28:05: Output: Validating System.Web.Optimization.dll...
+26-08-2024 19:28:05: Output: 90%
+26-08-2024 19:28:05: Output: Validating System.Web.Razor.dll...
+26-08-2024 19:28:05: Output: 92%
+26-08-2024 19:28:05: Output: Validating System.Web.WebPages.Deployment.dll...
+26-08-2024 19:28:05: Output: 94%
+26-08-2024 19:28:05: Output: Validating System.Web.WebPages.dll...
+26-08-2024 19:28:05: Output: 96%
+26-08-2024 19:28:05: Output: Validating System.Web.WebPages.Razor.dll...
+26-08-2024 19:28:05: Output: 98%
+26-08-2024 19:28:05: Output: Validating WebGrease.dll...
+26-08-2024 19:28:05: Output: 100%
+26-08-2024 19:28:05: Output: Validation complete.
+26-08-2024 19:28:05: Output: Generating IRX file...
+26-08-2024 19:28:06: Output: Processing target DotNet (1 of 1)
+26-08-2024 19:28:07: Output: Performing Framework Analysis for setting 'frameworksCLI'...
+26-08-2024 19:28:59: Output: Completed Framework Analysis
+26-08-2024 19:28:59: Output: Processing file System.IO.Compression.ZipFile.dll (1 of 35)
+26-08-2024 19:28:59: Output: Processed: (2%)
+26-08-2024 19:28:59: Output: Processing file App_global.asax.dll (2 of 35)
+26-08-2024 19:28:59: Output: Processed: (5%)
+26-08-2024 19:28:59: Output: Processing file App_Web_3h1fur1i.dll (3 of 35)
+26-08-2024 19:28:59: Output: Processed: (8%)
+26-08-2024 19:29:00: Output: Processing file System.Xml.ReaderWriter.dll (4 of 35)
+26-08-2024 19:29:00: Output: Processed: (11%)
+26-08-2024 19:29:00: Output: Processing file App_Web_m4l0jxp2.dll (5 of 35)
+26-08-2024 19:29:00: Output: Processed: (14%)
+26-08-2024 19:29:00: Output: Processing file App_Web_y0rad3ua.dll (6 of 35)
+26-08-2024 19:29:00: Output: Processed: (17%)
+26-08-2024 19:29:00: Output: Processing file System.Security.Cryptography.Encoding.dll (7 of 35)
+26-08-2024 19:29:00: Output: Processed: (20%)
+26-08-2024 19:29:00: Output: Processing file System.Xml.XPath.XDocument.dll (8 of 35)
+26-08-2024 19:29:00: Output: Processed: (22%)
+26-08-2024 19:29:00: Output: Processing file System.Xml.XPath.dll (9 of 35)
+26-08-2024 19:29:00: Output: Processed: (25%)
+26-08-2024 19:29:00: Output: Processing file Microsoft.Build.Tasks.CodeAnalysis.dll (10 of 35)
+26-08-2024 19:29:11: Output: Processed: (28%)
+26-08-2024 19:29:11: Output: Processing file csc.exe (11 of 35)
+26-08-2024 19:29:12: Output: Processed: (31%)
+26-08-2024 19:29:12: Output: Processing file Microsoft.CodeAnalysis.CSharp.Scripting.dll (12 of 35)
+26-08-2024 19:29:14: Output: Processed: (34%)
+26-08-2024 19:29:14: Output: Processing file Microsoft.CodeAnalysis.Scripting.dll (13 of 35)
+26-08-2024 19:29:16: Output: Processed: (37%)
+26-08-2024 19:29:16: Output: Processing file System.ValueTuple.dll (14 of 35)
+26-08-2024 19:29:16: Output: Processed: (40%)
+26-08-2024 19:29:16: Output: Processing file WebGrease.dll (15 of 35)
+26-08-2024 19:29:51: Output: Processed: (42%)
+26-08-2024 19:29:51: Output: Processing file Microsoft.Win32.Primitives.dll (16 of 35)
+26-08-2024 19:29:51: Output: Processed: (45%)
+26-08-2024 19:29:51: Output: Processing file System.AppContext.dll (17 of 35)
+26-08-2024 19:29:51: Output: Processed: (48%)
+26-08-2024 19:29:51: Output: Processing file System.Security.Cryptography.X509Certificates.dll (18 of 35)
+26-08-2024 19:29:51: Output: Processed: (51%)
+26-08-2024 19:29:51: Output: Processing file System.Console.dll (19 of 35)
+26-08-2024 19:29:51: Output: Processed: (54%)
+26-08-2024 19:29:51: Output: Processing file System.IO.Compression.dll (20 of 35)
+26-08-2024 19:29:53: Output: Processed: (57%)
+26-08-2024 19:29:53: Output: Processing file System.Security.Cryptography.Primitives.dll (21 of 35)
+26-08-2024 19:29:53: Output: Processed: (60%)
+26-08-2024 19:29:53: Output: Processing file System.Diagnostics.DiagnosticSource.dll (22 of 35)
+26-08-2024 19:29:53: Output: Processed: (62%)
+26-08-2024 19:29:53: Output: Processing file System.Globalization.Calendars.dll (23 of 35)
+26-08-2024 19:29:53: Output: Processed: (65%)
+26-08-2024 19:29:53: Output: Processing file System.Diagnostics.FileVersionInfo.dll (24 of 35)
+26-08-2024 19:29:53: Output: Processed: (68%)
+26-08-2024 19:29:53: Output: Processing file System.IO.FileSystem.dll (25 of 35)
+26-08-2024 19:29:53: Output: Processed: (71%)
+26-08-2024 19:29:53: Output: Processing file System.IO.FileSystem.Primitives.dll (26 of 35)
+26-08-2024 19:29:53: Output: Processed: (74%)
+26-08-2024 19:29:53: Output: Processing file System.Net.Http.dll (27 of 35)
+26-08-2024 19:29:57: Output: Processed: (77%)
+26-08-2024 19:29:57: Output: Processing file System.Net.Sockets.dll (28 of 35)
+26-08-2024 19:29:58: Output: Processed: (80%)
+26-08-2024 19:29:58: Output: Processing file System.Reflection.Metadata.dll (29 of 35)
+26-08-2024 19:30:05: Output: Processed: (82%)
+26-08-2024 19:30:05: Output: Processing file System.Runtime.InteropServices.RuntimeInformation.dll (30 of 35)
+26-08-2024 19:30:05: Output: Processed: (85%)
+26-08-2024 19:30:05: Output: Processing file System.Security.Cryptography.Algorithms.dll (31 of 35)
+26-08-2024 19:30:06: Output: Processed: (88%)
+26-08-2024 19:30:06: Output: Processing file System.Text.Encoding.CodePages.dll (32 of 35)
+26-08-2024 19:30:07: Output: Processed: (91%)
+26-08-2024 19:30:07: Output: Processing file System.Xml.XmlDocument.dll (33 of 35)
+26-08-2024 19:30:07: Output: Processed: (94%)
+26-08-2024 19:30:07: Output: Processing file vbc.exe (34 of 35)
+26-08-2024 19:30:08: Output: Processed: (97%)
+26-08-2024 19:30:08: Output: Processing file VBCSCompiler.exe (35 of 35)
+26-08-2024 19:30:10: Output: Processed: (100%)
+26-08-2024 19:30:10: Output: Writing the internal artifact...
+26-08-2024 19:30:10: Output: Completed writing the internal artifact
+26-08-2024 19:30:17: Output: IRX file generation successful.
+26-08-2024 19:30:17: Output: The following packages/namespaces will be analyzed:
+26-08-2024 19:30:17: Output: 	
+26-08-2024 19:30:17: Output: 	ASP
+26-08-2024 19:30:17: Output: 	Antlr.Runtime
+26-08-2024 19:30:17: Output: 	Antlr.Runtime.Debug
+26-08-2024 19:30:17: Output: 	Antlr.Runtime.Misc
+26-08-2024 19:30:17: Output: 	Antlr.Runtime.Tree
+26-08-2024 19:30:17: Output: 	DotnetFrameworkWebApp
+26-08-2024 19:30:17: Output: 	DotnetFrameworkWebApp.Controllers
+26-08-2024 19:30:17: Output: 	FxResources.System.Console
+26-08-2024 19:30:17: Output: 	FxResources.System.IO
+26-08-2024 19:30:17: Output: 	FxResources.System.Net
+26-08-2024 19:30:17: Output: 	FxResources.System.Reflection
+26-08-2024 19:30:17: Output: 	FxResources.System.Runtime
+26-08-2024 19:30:17: Output: 	FxResources.System.Security
+26-08-2024 19:30:17: Output: 	FxResources.System.ValueTuple
+26-08-2024 19:30:17: Output: 	FxResources.System.Xml
+26-08-2024 19:30:17: Output: 	Microsoft.Cci
+26-08-2024 19:30:17: Output: 	Microsoft.CodeAnalysis
+26-08-2024 19:30:17: Output: 	Microsoft.CodeAnalysis.CSharp
+26-08-2024 19:30:17: Output: 	Microsoft.CodeAnalysis.CodeGen
+26-08-2024 19:30:17: Output: 	Microsoft.CodeAnalysis.Emit
+26-08-2024 19:30:17: Output: 	Microsoft.CodeAnalysis.FlowAnalysis
+26-08-2024 19:30:17: Output: 	Microsoft.CodeAnalysis.Interop
+26-08-2024 19:30:17: Output: 	Microsoft.CodeAnalysis.Operations
+26-08-2024 19:30:17: Output: 	Microsoft.CodeAnalysis.VisualBasic
+26-08-2024 19:30:17: Output: 	Microsoft.CodeDom.Providers
+26-08-2024 19:30:17: Output: 	Microsoft.DiaSymReader
+26-08-2024 19:30:17: Output: 	Microsoft.Internal.Web
+26-08-2024 19:30:17: Output: 	Microsoft.Web.Infrastructure
+26-08-2024 19:30:17: Output: 	Newtonsoft.Json
+26-08-2024 19:30:17: Output: 	Newtonsoft.Json.Bson
+26-08-2024 19:30:17: Output: 	Newtonsoft.Json.Converters
+26-08-2024 19:30:17: Output: 	Newtonsoft.Json.Linq
+26-08-2024 19:30:17: Output: 	Newtonsoft.Json.Schema
+26-08-2024 19:30:17: Output: 	Newtonsoft.Json.Serialization
+26-08-2024 19:30:17: Output: 	Newtonsoft.Json.Utilities
+26-08-2024 19:30:17: Output: 	Roslyn.Utilities
+26-08-2024 19:30:17: Output: 	System
+26-08-2024 19:30:17: Output: 	System.Collections.Generic
+26-08-2024 19:30:17: Output: 	System.Collections.Immutable
+26-08-2024 19:30:17: Output: 	System.Collections.ObjectModel
+26-08-2024 19:30:17: Output: 	System.ComponentModel
+26-08-2024 19:30:17: Output: 	System.Diagnostics
+26-08-2024 19:30:17: Output: 	System.Diagnostics.CodeAnalysis
+26-08-2024 19:30:17: Output: 	System.IO
+26-08-2024 19:30:17: Output: 	System.IO.Compression
+26-08-2024 19:30:17: Output: 	System.Net
+26-08-2024 19:30:17: Output: 	System.Net.Http
+26-08-2024 19:30:17: Output: 	System.Net.Mail
+26-08-2024 19:30:17: Output: 	System.Net.Sockets
+26-08-2024 19:30:17: Output: 	System.Numerics.Hashing
+26-08-2024 19:30:17: Output: 	System.Reflection
+26-08-2024 19:30:18: Output: 	System.Reflection.Internal
+26-08-2024 19:30:18: Output: 	System.Reflection.Metadata
+26-08-2024 19:30:18: Output: 	System.Reflection.PortableExecutable
+26-08-2024 19:30:18: Output: 	System.Runtime.CompilerServices
+26-08-2024 19:30:18: Output: 	System.Runtime.InteropServices
+26-08-2024 19:30:18: Output: 	System.Security.Cryptography
+26-08-2024 19:30:18: Output: 	System.Threading.Tasks
+26-08-2024 19:30:18: Output: 	System.Web
+26-08-2024 19:30:18: Output: 	System.Web.Helpers
+26-08-2024 19:30:18: Output: 	System.Web.Mvc
+26-08-2024 19:30:18: Output: 	System.Web.Optimization
+26-08-2024 19:30:18: Output: 	System.Web.Razor
+26-08-2024 19:30:18: Output: 	System.Web.WebPages
+26-08-2024 19:30:18: Output: 	System.Xml.XPath
+26-08-2024 19:30:18: Output: 	__ASP

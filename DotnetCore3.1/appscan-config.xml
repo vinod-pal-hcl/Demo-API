@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Configuration staticAnalysisOnly="true">
+  <Targets>
+    <Target path="obj\Debug\netcoreapp3.1\DotnetCore3.1.dll"/>
+    <Target path="obj\Debug\netcoreapp3.1\win-x64\DotnetCore3.1.dll"/>
+  </Targets>
+</Configuration>

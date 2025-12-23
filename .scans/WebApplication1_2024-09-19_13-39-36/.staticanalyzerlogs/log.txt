@@ -1,0 +1,9 @@
+Initiating the scan...
+19-09-2024 13:39:36: Solution is selected for scanning. Initiating scan...
+19-09-2024 13:39:37: Executing command: C:\Users\vinodmataprasad.pal.PROD\.appscan\SAClientUtil.8.0.1580\bin\appscan.bat prepare -c "C:\projects\WebApplication1\.scans\WebApplication1_2024-09-19_13-39-36\appscan-config.xml" -d "C:\projects\WebApplication1\.scans\WebApplication1_2024-09-19_13-39-36" -n "Static_WebApplication1_2024-09-19_13-39-30.irx"  -sao  -s simple 
+19-09-2024 13:39:38: Output: A configuration file was found: C:\projects\WebApplication1\.scans\WebApplication1_2024-09-19_13-39-36\appscan-config.xml
+19-09-2024 13:39:38: Output: Processing configuration file...
+19-09-2024 13:39:39: ERROR: There was an error validating the configuration file.
+19-09-2024 13:39:39: ERROR: cvc-complex-type.2.4.b: The content of element 'Targets' is not complete. One of '{Target}' is expected.
+19-09-2024 13:39:39: IRX generation has been completed
+19-09-2024 13:39:39: Something went wrong while uploading file to ASoC

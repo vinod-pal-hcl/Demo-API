@@ -22,7 +22,12 @@ jobs:
     
     - name: Download AppScan CLI
       run: |
-        curl -L -o appscan-cli.jar https://github.com/HCL-TECH-SOFTWARE/appscan-cloud-cli/releases/latest/download/appscan-cloud-cli.jar
+        # Try official release or use direct Maven Central download
+        curl -L -o appscan-cli.jar "https://github.com/HCL-TECH-SOFTWARE/appscan-cloud-cli/releases/download/v1.0.0/appscan-cloud-cli.jar" || \
+        curl -L -o appscan-cli.jar "https://repo1.maven.org/maven2/com/hcl/appscan/appscan-cloud-cli/1.0.0/appscan-cloud-cli-1.0.0.jar"
+        
+        # Verify the JAR file
+        file appscan-cli.jar
     
     - name: Prepare scan files
       run: java -jar appscan-cli.jar prepare

@@ -1,45 +1,15 @@
-name: HCL AppScan Security Scan
-
+name: "HCL AppScan SAST"
 on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main ]
-
+  workflow_dispatch
 jobs:
-  security-scan:
+  scan:
     runs-on: ubuntu-latest
-    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-    
-    - name: Set up Java
-      uses: actions/setup-java@v3
-      with:
-        distribution: 'temurin'
-        java-version: '11'
-    
-    - name: Download AppScan CLI
-      run: |
-        # Try official release or use direct Maven Central download
-        curl -L -o appscan-cli.jar "https://github.com/HCL-TECH-SOFTWARE/appscan-cloud-cli/releases/download/v1.0.0/appscan-cloud-cli.jar" || \
-        curl -L -o appscan-cli.jar "https://repo1.maven.org/maven2/com/hcl/appscan/appscan-cloud-cli/1.0.0/appscan-cloud-cli-1.0.0.jar"
-        
-        # Verify the JAR file
-        file appscan-cli.jar
-    
-    - name: Prepare scan files
-      run: java -jar appscan-cli.jar prepare
-    
-    - name: Run AppScan Scan
-      env:
-        APPSCAN_KEY: ${{ secrets.APPSCAN_KEY }}
-        APPSCAN_SECRET: ${{ secrets.APPSCAN_SECRET }}
-        APPSCAN_APP_ID: ${{ secrets.APPSCAN_APP_ID }}
-      run: |
-        java -jar appscan-cli.jar queue_analysis \
-          -a $APPSCAN_KEY \
-          -s $APPSCAN_SECRET \
-          -i $APPSCAN_APP_ID \
-          -n "GitHub Action Scan - ${{ github.sha }}"
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Run AppScan SAST scan
+        uses: HCL-TECH-SOFTWARE/appscan-sast-action@v1.0.7
+        with:
+          asoc_key: ${{secrets.ASOC_KEY}}
+          asoc_secret: ${{secrets.ASOC_SECRET}}
+          application_id: 4dd230f8-d47c-4cc7-b509-d8b2ad93bf71

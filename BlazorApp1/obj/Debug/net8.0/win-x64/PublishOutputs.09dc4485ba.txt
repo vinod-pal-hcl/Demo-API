@@ -1,7 +1,0 @@
-C:\Users\vinodmataprasad.pal.PROD\AppData\Local\Temp\BlazorApp1\BlazorApp1.exe
-C:\Users\vinodmataprasad.pal.PROD\AppData\Local\Temp\BlazorApp1\appsettings.Development.json
-C:\Users\vinodmataprasad.pal.PROD\AppData\Local\Temp\BlazorApp1\appsettings.json
-C:\Users\vinodmataprasad.pal.PROD\AppData\Local\Temp\BlazorApp1\BlazorApp1.dll
-C:\Users\vinodmataprasad.pal.PROD\AppData\Local\Temp\BlazorApp1\BlazorApp1.deps.json
-C:\Users\vinodmataprasad.pal.PROD\AppData\Local\Temp\BlazorApp1\BlazorApp1.runtimeconfig.json
-C:\Users\vinodmataprasad.pal.PROD\AppData\Local\Temp\BlazorApp1\BlazorApp1.pdb

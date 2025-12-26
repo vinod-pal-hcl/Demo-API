@@ -20,6 +20,13 @@ jobs:
         distribution: 'temurin'
         java-version: '11'
     
+    - name: Download AppScan CLI
+      run: |
+        curl -L -o appscan-cli.jar https://github.com/HCL-TECH-SOFTWARE/appscan-cloud-cli/releases/latest/download/appscan-cloud-cli.jar
+    
+    - name: Prepare scan files
+      run: java -jar appscan-cli.jar prepare
+    
     - name: Run AppScan Scan
       env:
         APPSCAN_KEY: ${{ secrets.APPSCAN_KEY }}

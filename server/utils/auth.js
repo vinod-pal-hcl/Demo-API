@@ -1,3 +1,18 @@
+/**
+ * ==================================================================================
+ * INTENTIONALLY VULNERABLE CODE - SAST TESTING PROJECT
+ * ==================================================================================
+ * This utility file contains FAKE credentials and weak cryptographic practices:
+ * - Hardcoded API keys (FAKE/TEST only)
+ * - Weak encryption algorithms (DES, MD5)
+ * - No salt in password hashing
+ * - Timing attack vulnerabilities
+ * - Accepting 'none' JWT algorithm
+ * 
+ * FOR TESTING PURPOSES ONLY - DO NOT USE IN PRODUCTION
+ * ==================================================================================
+ */
+
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 

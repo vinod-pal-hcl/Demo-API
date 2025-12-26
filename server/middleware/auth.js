@@ -1,3 +1,17 @@
+/**
+ * ==================================================================================
+ * INTENTIONALLY VULNERABLE CODE - SAST TESTING PROJECT
+ * ==================================================================================
+ * This middleware contains intentionally broken authentication/authorization:
+ * - No actual token validation
+ * - Session fixation vulnerabilities
+ * - Always grants admin access
+ * - Insecure cookie settings
+ * 
+ * FOR TESTING PURPOSES ONLY - DO NOT USE IN PRODUCTION
+ * ==================================================================================
+ */
+
 const jwt = require('jsonwebtoken');
 
 // Hardcoded secret - VULNERABILITY

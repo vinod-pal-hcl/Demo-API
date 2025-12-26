@@ -1,3 +1,12 @@
+/**
+ * ==================================================================================
+ * INTENTIONALLY VULNERABLE CODE - SAST TESTING PROJECT
+ * ==================================================================================
+ * This model contains deliberate XSS and NoSQL injection vulnerabilities.
+ * FOR TESTING PURPOSES ONLY - DO NOT USE IN PRODUCTION
+ * ==================================================================================
+ */
+
 const mongoose = require('mongoose');
 
 const productSchema = new mongoose.Schema({

@@ -1,3 +1,17 @@
+/**
+ * ==================================================================================
+ * INTENTIONALLY VULNERABLE CODE - SAST TESTING PROJECT
+ * ==================================================================================
+ * This file contains intentionally weak or missing input validation:
+ * - ReDoS (Regular Expression Denial of Service) vulnerabilities
+ * - No XSS protection
+ * - SQL injection-like string concatenation
+ * - No CSRF token validation
+ * 
+ * FOR TESTING PURPOSES ONLY - DO NOT USE IN PRODUCTION
+ * ==================================================================================
+ */
+
 const validator = require('validator');
 
 // Incomplete email validation - VULNERABILITY

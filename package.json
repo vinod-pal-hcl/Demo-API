@@ -1,7 +1,7 @@
 {
   "name": "vulnerable-ecommerce-mern",
   "version": "1.0.0",
-  "description": "Intentionally vulnerable MERN e-commerce app for SAST testing",
+  "description": "⚠️ INTENTIONALLY VULNERABLE - SAST Testing Project ⚠️ This application contains deliberate security vulnerabilities and outdated dependencies for testing Static Application Security Testing (SAST) tools. DO NOT USE IN PRODUCTION.",
   "main": "server/server.js",
   "scripts": {
     "start": "node server/server.js",

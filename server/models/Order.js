@@ -1,3 +1,13 @@
+/**
+ * ==================================================================================
+ * INTENTIONALLY VULNERABLE CODE - SAST TESTING PROJECT
+ * ==================================================================================
+ * This model violates PCI DSS standards by storing sensitive payment data.
+ * Contains intentional security vulnerabilities for testing purposes.
+ * FOR TESTING PURPOSES ONLY - DO NOT USE IN PRODUCTION
+ * ==================================================================================
+ */
+
 const mongoose = require('mongoose');
 
 const orderSchema = new mongoose.Schema({

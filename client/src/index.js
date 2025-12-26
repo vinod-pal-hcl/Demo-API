@@ -1,3 +1,12 @@
+/**
+ * ==================================================================================
+ * INTENTIONALLY VULNERABLE CODE - SAST TESTING PROJECT
+ * ==================================================================================
+ * This file exposes sensitive configuration and contains XSS vulnerabilities.
+ * FOR TESTING PURPOSES ONLY - DO NOT USE IN PRODUCTION
+ * ==================================================================================
+ */
+
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';

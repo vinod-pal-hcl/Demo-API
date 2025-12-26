@@ -1,3 +1,18 @@
+/**
+ * ==================================================================================
+ * INTENTIONALLY VULNERABLE CODE - SAST TESTING PROJECT
+ * ==================================================================================
+ * This configuration file contains FAKE hardcoded credentials:
+ * - Test database passwords
+ * - Fake AWS keys
+ * - Insecure connection settings
+ * - Credentials exposed in logs
+ * 
+ * All credentials are FAKE and for testing only.
+ * FOR TESTING PURPOSES ONLY - DO NOT USE IN PRODUCTION
+ * ==================================================================================
+ */
+
 const mongoose = require('mongoose');
 
 // Hardcoded database credentials - VULNERABILITY

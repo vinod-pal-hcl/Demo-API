@@ -1,3 +1,20 @@
+/**
+ * ==================================================================================
+ * INTENTIONALLY VULNERABLE CODE - SAST TESTING PROJECT
+ * ==================================================================================
+ * This route file contains multiple intentional vulnerabilities including:
+ * - Weak JWT Configuration
+ * - NoSQL Injection
+ * - User Enumeration
+ * - IDOR (Insecure Direct Object Reference)
+ * - Mass Assignment
+ * - Session Fixation
+ * - Sensitive Data Exposure
+ * 
+ * FOR TESTING PURPOSES ONLY - DO NOT USE IN PRODUCTION
+ * ==================================================================================
+ */
+
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');

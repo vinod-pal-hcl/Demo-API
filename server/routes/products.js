@@ -1,3 +1,19 @@
+/**
+ * ==================================================================================
+ * INTENTIONALLY VULNERABLE CODE - SAST TESTING PROJECT
+ * ==================================================================================
+ * This route file contains multiple intentional vulnerabilities including:
+ * - NoSQL Injection
+ * - Command Injection
+ * - Path Traversal
+ * - SSRF (Server-Side Request Forgery)
+ * - Mass Assignment
+ * - No Authentication/Authorization
+ * 
+ * FOR TESTING PURPOSES ONLY - DO NOT USE IN PRODUCTION
+ * ==================================================================================
+ */
+
 const express = require('express');
 const router = express.Router();
 const Product = require('../models/Product');

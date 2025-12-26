@@ -1,3 +1,18 @@
+/**
+ * ==================================================================================
+ * WARNING: INTENTIONALLY VULNERABLE CODE - FOR SAST TESTING ONLY
+ * ==================================================================================
+ * This application contains deliberate security vulnerabilities for testing
+ * Static Application Security Testing (SAST) tools.
+ * 
+ * DO NOT USE IN PRODUCTION
+ * DO NOT DEPLOY TO THE INTERNET
+ * DO NOT USE REAL CREDENTIALS
+ * 
+ * All vulnerabilities are intentional and documented.
+ * ==================================================================================
+ */
+
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');

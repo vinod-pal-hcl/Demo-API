@@ -1,3 +1,17 @@
+/**
+ * ==================================================================================
+ * INTENTIONALLY VULNERABLE CODE - SAST TESTING PROJECT
+ * ==================================================================================
+ * This model contains deliberate security flaws including:
+ * - Weak password hashing
+ * - Storage of sensitive PII without encryption
+ * - Timing attack vulnerabilities
+ * - Insecure data exposure
+ * 
+ * FOR TESTING PURPOSES ONLY - DO NOT USE IN PRODUCTION
+ * ==================================================================================
+ */
+
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 

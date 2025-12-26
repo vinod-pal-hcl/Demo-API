@@ -1,3 +1,19 @@
+/**
+ * ==================================================================================
+ * INTENTIONALLY VULNERABLE CODE - SAST TESTING PROJECT
+ * ==================================================================================
+ * This route file contains multiple intentional vulnerabilities including:
+ * - PCI DSS Violations (storing CVV, card numbers)
+ * - IDOR (Insecure Direct Object Reference)
+ * - Price Manipulation
+ * - Race Conditions
+ * - No Authentication/Authorization
+ * - Logging Sensitive Data
+ * 
+ * FOR TESTING PURPOSES ONLY - DO NOT USE IN PRODUCTION
+ * ==================================================================================
+ */
+
 const express = require('express');
 const router = express.Router();
 const Order = require('../models/Order');

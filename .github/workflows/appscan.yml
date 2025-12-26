@@ -1,0 +1,33 @@
+name: HCL AppScan Security Scan
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up Java
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '11'
+    
+    - name: Run AppScan Scan
+      env:
+        APPSCAN_KEY: ${{ secrets.APPSCAN_KEY }}
+        APPSCAN_SECRET: ${{ secrets.APPSCAN_SECRET }}
+        APPSCAN_APP_ID: ${{ secrets.APPSCAN_APP_ID }}
+      run: |
+        java -jar appscan-cli.jar queue_analysis \
+          -a $APPSCAN_KEY \
+          -s $APPSCAN_SECRET \
+          -i $APPSCAN_APP_ID \
+          -n "GitHub Action Scan - ${{ github.sha }}"

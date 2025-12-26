@@ -1,0 +1,8 @@
+# Intentionally minimal .gitignore for SAST testing
+# Note: .env is NOT ignored to expose hardcoded secrets
+
+node_modules/
+build/
+dist/
+*.log
+.DS_Store

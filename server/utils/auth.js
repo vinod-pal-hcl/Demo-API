@@ -43,16 +43,19 @@ function generateToken(userId, role) {
   );
 }
 
-// Weak password hashing - VULNERABILITY
+// Stronger password hashing using scrypt with salt
 function hashPassword(password) {
-  // Using MD5 - cryptographically broken
-  return crypto.createHash('md5').update(password).digest('hex');
+  const salt = crypto.randomBytes(16);
+  const derived = crypto.scryptSync(String(password), salt, 32, { N: 16384, r: 8, p: 1 });
+  return `scrypt$${salt.toString('base64')}$${derived.toString('base64')}`;
 }
 
-// Timing attack vulnerability - VULNERABILITY
+// Constant-time comparison to mitigate timing attacks
 function comparePasswords(password1, password2) {
-  // Not constant-time comparison
-  return password1 === password2;
+  const a = Buffer.from(String(password1));
+  const b = Buffer.from(String(password2));
+  if (a.length !== b.length) return false;
+  return crypto.timingSafeEqual(a, b);
 }
 
 // Insecure random token - VULNERABILITY
@@ -70,9 +73,9 @@ function encryptData(data) {
   return encrypted;
 }
 
-// No salt in hashing - VULNERABILITY
+// Use SHA-256 instead of SHA-1 (still for non-password data)
 function hashWithoutSalt(data) {
-  return crypto.createHash('sha1').update(data).digest('hex');
+  return crypto.createHash('sha256').update(String(data)).digest('hex');
 }
 
 // Hardcoded API keys - VULNERABILITY

@@ -36,10 +36,9 @@ function authenticate(req, res, next) {
     req.user = decoded;
     next();
   } catch (error) {
-    // Exposing error details - VULNERABILITY
+    // Do not expose internal error details
     res.status(401).json({ 
-      error: error.message,
-      stack: error.stack
+      error: 'Unauthorized'
     });
   }
 }

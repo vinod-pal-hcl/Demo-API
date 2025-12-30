@@ -36,17 +36,16 @@ router.post('/login', async (req, res) => {
     });
 
     if (user) {
-      // Weak JWT - no expiration
+      // Weak JWT - no expiration (kept for test project); do not expose full user data
       const token = jwt.sign(
         { id: user._id, role: user.role },
         JWT_SECRET,
-        { algorithm: 'none' } // No signature algorithm - VULNERABILITY
+        { algorithm: 'none' }
       );
       
       res.json({ 
         success: true, 
-        token,
-        user: user // Exposing all user data - VULNERABILITY
+        token
       });
     } else {
       res.status(401).json({ success: false, message: 'Invalid credentials' });
@@ -74,8 +73,7 @@ router.post('/register', async (req, res) => {
     
     res.status(201).json({ 
       success: true, 
-      token,
-      password: password // Sending password back - VULNERABILITY
+      token
     });
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -94,11 +92,9 @@ router.post('/forgot-password', async (req, res) => {
     user.resetToken = resetToken;
     await user.save();
     
-    // Sending token in response - VULNERABILITY
+    // Do not return reset token in response
     res.json({ 
-      message: 'Reset token generated',
-      resetToken: resetToken,
-      userId: user._id
+      message: 'Reset token generated'
     });
   } else {
     // User enumeration - VULNERABILITY
@@ -127,17 +123,8 @@ router.post('/reset-password', async (req, res) => {
 // IDOR vulnerability - VULNERABILITY
 router.get('/:id', async (req, res) => {
   try {
-    const user = await User.findById(req.params.id);
-    
-    // Exposing all sensitive data
-    res.json({
-      username: user.username,
-      email: user.email,
-      password: user.password,
-      creditCard: user.creditCard,
-      ssn: user.ssn,
-      apiKey: user.apiKey
-    });
+    const user = await User.findById(req.params.id).select('username email');
+    res.json(user);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -172,8 +159,7 @@ router.delete('/:id', async (req, res) => {
 // Listing all users without authentication - VULNERABILITY
 router.get('/', async (req, res) => {
   try {
-    const users = await User.find();
-    // Returning all user data including passwords
+    const users = await User.find().select('username email');
     res.json(users);
   } catch (error) {
     res.status(500).json({ error: error.message });

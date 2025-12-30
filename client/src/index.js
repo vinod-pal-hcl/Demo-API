@@ -24,12 +24,14 @@ window.API_CONFIG = {
   jwtSecret: 'client_side_secret'
 };
 
-// Using eval with user input - VULNERABILITY
-window.executeCode = function(code) {
-  eval(code);
+// Safe no-op instead of eval to avoid code execution
+window.executeCode = function() {
+  console.warn('executeCode is disabled for security.');
 };
 
-// XSS vulnerability - setting innerHTML - VULNERABILITY
+// Safely render text to avoid XSS by avoiding innerHTML
 window.renderHTML = function(html) {
-  document.getElementById('content').innerHTML = html;
+  const el = document.getElementById('content');
+  if (!el) return;
+  el.textContent = String(html);
 };

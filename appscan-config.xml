@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration enableSecrets="false" thirdParty="false">
+  <Targets>
+    <Target outputs-only="false" path="c:\projects\MERN-SAST-ISSUES-PROJECT\Demo-API">
+      <Exclude>*test*</Exclude>
+      <Exclude>*Test*</Exclude>
+      <Exclude>*tests*</Exclude>
+      <Exclude>node_modules/</Exclude>
+      <Exclude>.git/</Exclude>
+      <Exclude>.svn/</Exclude>
+      <Exclude>node_modules/</Exclude>
+      <Exclude>dist/</Exclude>
+      <Exclude>build/</Exclude>
+      <Exclude>coverage/</Exclude>
+    </Target>
+  </Targets>
+</Configuration>

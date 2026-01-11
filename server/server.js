@@ -93,6 +93,58 @@ app.post('/api/upload', (req, res) => {
   });
 });
 
+// Insecure deserialization - VULNERABILITY
+const serialize = require('node-serialize');
+app.post('/api/deserialize', (req, res) => {
+  const userObj = req.body.object;
+  // Dangerous deserialization without validation
+  const obj = serialize.unserialize(userObj);
+  res.json({ result: obj });
+});
+
+// LDAP Injection - VULNERABILITY
+const ldap = require('ldapjs');
+app.post('/api/ldap-search', (req, res) => {
+  const username = req.body.username;
+  const client = ldap.createClient({
+    url: 'ldap://localhost:389'
+  });
+  
+  // No sanitization - LDAP injection
+  const filter = `(&(uid=${username})(objectClass=person))`;
+  
+  client.search('dc=example,dc=com', { filter }, (err, result) => {
+    const entries = [];
+    result.on('searchEntry', (entry) => {
+      entries.push(entry.object);
+    });
+    result.on('end', () => {
+      res.json({ users: entries });
+    });
+  });
+});
+
+// Prototype pollution - VULNERABILITY
+app.post('/api/merge-config', (req, res) => {
+  const defaultConfig = { theme: 'light', lang: 'en' };
+  const userConfig = req.body.config;
+  
+  // Unsafe merge - prototype pollution
+  function merge(target, source) {
+    for (let key in source) {
+      if (typeof source[key] === 'object') {
+        target[key] = merge(target[key] || {}, source[key]);
+      } else {
+        target[key] = source[key];
+      }
+    }
+    return target;
+  }
+  
+  const finalConfig = merge(defaultConfig, userConfig);
+  res.json(finalConfig);
+});
+
 // NoSQL Injection - VULNERABILITY
 app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;

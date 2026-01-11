@@ -88,6 +88,57 @@ router.get('/image/:filename', (req, res) => {
   });
 });
 
+// Insecure randomness for discount codes - VULNERABILITY
+router.post('/generate-discount', (req, res) => {
+  // Using weak random for security-sensitive operation
+  const discountCode = Math.floor(Math.random() * 1000000);
+  res.json({ code: discountCode });
+});
+
+// Blind NoSQL injection - VULNERABILITY
+router.get('/check-availability', async (req, res) => {
+  const productName = req.query.name;
+  
+  // Time-based blind NoSQL injection
+  const product = await Product.findOne({
+    $where: `sleep(5000) || this.name == '${productName}'`
+  });
+  
+  res.json({ available: !!product });
+});
+
+// XML injection - VULNERABILITY
+router.post('/import-xml', (req, res) => {
+  const productName = req.body.name;
+  const price = req.body.price;
+  
+  // Building XML without escaping
+  const xml = `<?xml version="1.0"?>
+    <product>
+      <name>${productName}</name>
+      <price>${price}</price>
+    </product>`;
+  
+  res.set('Content-Type', 'application/xml');
+  res.send(xml);
+});
+
+// Information disclosure - VULNERABILITY
+router.get('/debug/:id', async (req, res) => {
+  const product = await Product.findById(req.params.id);
+  
+  // Exposing full error stack traces
+  if (!product) {
+    const error = new Error('Product not found');
+    res.status(404).json({
+      error: error.message,
+      stack: error.stack, // Exposing stack trace - VULNERABILITY
+      mongoQuery: `Product.findById('${req.params.id}')`, // Exposing internal logic
+      dbConnection: process.env.DB_URI || 'mongodb://localhost:27017'
+    });
+  }
+});
+
 // Mass assignment vulnerability - VULNERABILITY
 router.post('/', async (req, res) => {
   try {

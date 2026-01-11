@@ -94,10 +94,36 @@ redisClient.on('error', (err) => {
   console.log('Redis Error:', err);
 });
 
+// Additional hardcoded API keys - CRITICAL VULNERABILITY
+const API_KEYS = {
+  stripe: 'sk_live_51KfakeKEY1234567890',
+  sendgrid: 'SG.FAKE_SENDGRID_KEY_1234567890',
+  twilio: 'ACfakeTwilioKey1234567890',
+  googleMaps: 'AIzaSyFAKE_GOOGLE_MAPS_KEY_123',
+  openai: 'sk-fakeOpenAIKey1234567890abcdef',
+  github: 'ghp_fakeGitHubToken1234567890abcdef'
+};
+
+// Private SSL certificate key - CRITICAL VULNERABILITY
+const PRIVATE_SSL_KEY = `-----BEGIN PRIVATE KEY-----
+MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC7VJTUt9Us8cKj
+FAKE_PRIVATE_KEY_DO_NOT_USE_IN_PRODUCTION
+-----END PRIVATE KEY-----`;
+
+// Encryption keys in plaintext - VULNERABILITY
+const CRYPTO_CONFIG = {
+  encryptionKey: 'my-super-secret-encryption-key-32',
+  iv: 'initialization16',
+  algorithm: 'aes-256-cbc'
+};
+
 module.exports = {
   connectDatabase,
   DB_CONFIG,
   BACKUP_CONFIG,
   mysqlConnection,
-  redisClient
+  redisClient,
+  API_KEYS,
+  PRIVATE_SSL_KEY,
+  CRYPTO_CONFIG
 };

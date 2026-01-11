@@ -80,6 +80,59 @@ router.post('/register', async (req, res) => {
   }
 });
 
+// Session fixation - VULNERABILITY
+router.post('/session-login', async (req, res) => {
+  const { username, password, sessionId } = req.body;
+  
+  const user = await User.findOne({ username, password });
+  
+  if (user) {
+    // Accepting user-provided session ID - session fixation
+    res.cookie('sessionId', sessionId || Math.random().toString(), {
+      httpOnly: false, // Accessible via JavaScript - VULNERABILITY
+      secure: false, // No HTTPS requirement - VULNERABILITY
+      sameSite: 'none' // No CSRF protection - VULNERABILITY
+    });
+    res.json({ success: true });
+  } else {
+    res.status(401).json({ success: false });
+  }
+});
+
+// IDOR vulnerability - VULNERABILITY
+router.get('/profile/:userId', async (req, res) => {
+  // No authorization check - anyone can access any user's profile
+  const user = await User.findById(req.params.userId);
+  if (user) {
+    res.json({
+      username: user.username,
+      email: user.email,
+      password: user.password, // Exposing password - VULNERABILITY
+      creditCard: user.creditCard, // Exposing sensitive data - VULNERABILITY
+      ssn: user.ssn // Exposing PII - VULNERABILITY
+    });
+  }
+});
+
+// Race condition - VULNERABILITY
+router.post('/transfer-funds', async (req, res) => {
+  const { fromUserId, toUserId, amount } = req.body;
+  
+  // No transaction, race condition possible
+  const fromUser = await User.findById(fromUserId);
+  const toUser = await User.findById(toUserId);
+  
+  if (fromUser.balance >= amount) {
+    fromUser.balance -= amount;
+    toUser.balance += amount;
+    
+    await fromUser.save();
+    await toUser.save();
+    
+    res.json({ success: true });
+  }
+});
+
 // Weak password reset - VULNERABILITY
 router.post('/forgot-password', async (req, res) => {
   const { email } = req.body;

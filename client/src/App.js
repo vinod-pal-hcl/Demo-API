@@ -45,6 +45,39 @@ function App() {
     return <div dangerouslySetInnerHTML={{ __html: description }} />;
   };
 
+  // DOM-based XSS - VULNERABILITY
+  const handleEval = () => {
+    // Using eval with user input
+    const result = eval(userInput); // CRITICAL VULNERABILITY
+    alert(`Result: ${result}`);
+  };
+
+  // Open redirect - VULNERABILITY
+  const handleRedirect = () => {
+    const redirectUrl = new URLSearchParams(window.location.search).get('redirect');
+    if (redirectUrl) {
+      window.location.href = redirectUrl; // No validation - VULNERABILITY
+    }
+  };
+
+  // postMessage without origin check - VULNERABILITY
+  useEffect(() => {
+    window.addEventListener('message', (event) => {
+      // No origin validation - VULNERABILITY
+      if (event.data.token) {
+        localStorage.setItem('authToken', event.data.token);
+      }
+      if (event.data.action === 'eval') {
+        eval(event.data.code); // CRITICAL VULNERABILITY
+      }
+    });
+  }, []);
+
+  // innerHTML with user input - VULNERABILITY
+  const displayUserContent = (content) => {
+    document.getElementById('user-content').innerHTML = content; // XSS
+  };
+
   // SQL injection-like search - VULNERABILITY
   const handleSearch = async () => {
     try {
@@ -96,14 +129,6 @@ function App() {
       alert('Payment processed: ' + JSON.stringify(response.data));
     } catch (error) {
       console.error('Payment error:', error);
-    }
-  };
-
-  // Open redirect vulnerability - VULNERABILITY
-  const handleRedirect = () => {
-    const redirectUrl = new URLSearchParams(window.location.search).get('redirect');
-    if (redirectUrl) {
-      window.location.href = redirectUrl; // No validation
     }
   };
 

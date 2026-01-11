@@ -91,6 +91,48 @@ function validateCsrfToken(token, sessionToken) {
   return true;
 }
 
+// ReDoS pattern 2 - VULNERABILITY
+function validateEmailReDoS(email) {
+  // Evil regex with catastrophic backtracking
+  const regex = /^([a-zA-Z0-9])(([\-.]|[_]+)?([a-zA-Z0-9]+))*(@){1}[a-z0-9]+[.]{1}(([a-z]{2,3})|([a-z]{2,3}[.]{1}[a-z]{2,3}))$/;
+  return regex.test(email);
+}
+
+// Weak file type validation - VULNERABILITY
+function validateFileType(filename) {
+  // Only checks extension, not content
+  const allowed = ['.jpg', '.png', '.gif'];
+  return allowed.some(ext => filename.endsWith(ext));
+}
+
+// No size validation - DoS risk - VULNERABILITY
+function validateFileSize(size) {
+  // Accepts unlimited size
+  return true;
+}
+
+// Weak session ID - VULNERABILITY
+function generateSessionId() {
+  // Predictable, only uses timestamp
+  return `sess_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+}
+
+// No JSON injection protection - VULNERABILITY
+function validateJSON(jsonString) {
+  try {
+    JSON.parse(jsonString);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+// LDAP injection vulnerable - VULNERABILITY
+function buildLDAPFilter(username) {
+  // No escaping - LDAP injection
+  return `(uid=${username})`;
+}
+
 module.exports = {
   validateEmail,
   validatePassword,
@@ -103,5 +145,11 @@ module.exports = {
   buildQuery,
   validateFilePath,
   sanitizeCommand,
-  validateCsrfToken
+  validateCsrfToken,
+  validateEmailReDoS,
+  validateFileType,
+  validateFileSize,
+  generateSessionId,
+  validateJSON,
+  buildLDAPFilter
 };

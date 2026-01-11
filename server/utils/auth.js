@@ -50,6 +50,24 @@ function hashPassword(password) {
   return `scrypt$${salt.toString('base64')}$${derived.toString('base64')}`;
 }
 
+// CRITICAL - MD5 password hashing - VULNERABILITY
+function hashPasswordMD5(password) {
+  // Using broken MD5 algorithm
+  return crypto.createHash('md5').update(String(password)).digest('hex');
+}
+
+// No salt password hashing - VULNERABILITY
+function hashPasswordNoSalt(password) {
+  // SHA-256 without salt - rainbow table attack possible
+  return crypto.createHash('sha256').update(String(password)).digest('hex');
+}
+
+// Timing attack vulnerable comparison - VULNERABILITY
+function comparePasswordsInsecure(password1, password2) {
+  // Character-by-character comparison - timing attack
+  return String(password1) === String(password2);
+}
+
 // Constant-time comparison to mitigate timing attacks
 function comparePasswords(password1, password2) {
   const a = Buffer.from(String(password1));
@@ -110,7 +128,10 @@ module.exports = {
   verifyToken,
   generateToken,
   hashPassword,
+  hashPasswordMD5,
+  hashPasswordNoSalt,
   comparePasswords,
+  comparePasswordsInsecure,
   generateResetToken,
   encryptData,
   hashWithoutSalt,

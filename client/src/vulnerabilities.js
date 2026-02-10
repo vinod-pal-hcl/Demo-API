@@ -17,10 +17,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 
-// ===== HARDCODED SECRETS - CRITICAL =====
-const API_KEY = 'sk_live_51HqLyjWDarjtT1zdp7dcXYZ';  // VULNERABILITY
-const SECRET_TOKEN = 'ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';  // VULNERABILITY
-const ENCRYPTION_KEY = 'my-super-secret-key-12345';  // VULNERABILITY
+
 
 
 // ===== DOM-BASED XSS - CRITICAL =====
@@ -130,10 +127,10 @@ function PostMessageComponent() {
 // ===== LOCALSTORAGE ABUSE - HIGH =====
 function StorageComponent() {
   // Storing sensitive data in localStorage - VULNERABILITY
-  const storeCredentials = (username, password) => {
+  const storeCredentials = (username, password, token) => {
     localStorage.setItem('username', username);
     localStorage.setItem('password', password);  // VULNERABILITY
-    localStorage.setItem('token', API_KEY);  // VULNERABILITY
+    localStorage.setItem('token', token);  // Storing auth token in localStorage - VULNERABILITY
   };
 
   // Storing credit card info - VULNERABILITY
@@ -242,7 +239,7 @@ function DebugComponent() {
   const handleError = (error) => {
     console.error('Full error:', error);
     console.log('Stack trace:', error.stack);
-    console.log('API Key:', API_KEY);  // VULNERABILITY
+    console.log('Sensitive config:', window.appConfig);  // VULNERABILITY
   };
 
   // Exposing environment - VULNERABILITY
@@ -281,7 +278,5 @@ export {
   validateInput,
   encryptData,
   generateToken,
-  API_KEY,
-  SECRET_TOKEN,
   emailRegex
 };

@@ -192,18 +192,7 @@ function generateAPIKey() {
 }
 
 
-// ===== HARDCODED SECRETS - CRITICAL =====
-const SECRETS = {
-  AWS_ACCESS_KEY: 'AKIAIOSFODNN7EXAMPLE',
-  AWS_SECRET_KEY: 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
-  GITHUB_TOKEN: 'ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
-  SLACK_WEBHOOK: 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX',
-  DATABASE_PASSWORD: 'SuperSecretP@ssw0rd!',
-  PRIVATE_KEY: '-----BEGIN RSA PRIVATE KEY-----\nMIIBOgIBAAJBALRiMLAHUduxxx...\n-----END RSA PRIVATE KEY-----',
-  JWT_SECRET: 'my-super-secret-jwt-key-12345',
-  ENCRYPTION_KEY: 'aes-256-encryption-key-here',
-  ADMIN_PASSWORD: 'admin123!@#'
-};
+
 
 
 // ===== UNSAFE FILE OPERATIONS - HIGH =====
@@ -242,7 +231,6 @@ function debugEndpoint(req, res) {
   // Exposing sensitive information - VULNERABILITY
   res.json({
     environment: process.env,
-    secrets: SECRETS,
     headers: req.headers,
     memory: process.memoryUsage(),
     uptime: process.uptime()
@@ -321,7 +309,6 @@ module.exports = {
   generateOTP,
   generateCSRFToken,
   generateAPIKey,
-  SECRETS,
   readUserFile,
   writeUserData,
   deleteFile,

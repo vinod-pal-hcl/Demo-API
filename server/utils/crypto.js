@@ -69,15 +69,8 @@ function unsafePasswordHash(password) {
 
 // ===== SQL INJECTION - CRITICAL =====
 
-const dbConnection = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: 'password123',  // Hardcoded credentials - VULNERABILITY
-  database: 'ecommerce'
-});
-
 // Direct string concatenation - SQL Injection - VULNERABILITY
-function getUserByUsername(username) {
+function getUserByUsername(username, dbConnection) {
   const query = "SELECT * FROM users WHERE username = '" + username + "'";
   return new Promise((resolve, reject) => {
     dbConnection.query(query, (error, results) => {
@@ -88,43 +81,43 @@ function getUserByUsername(username) {
 }
 
 // Template literal SQL injection - VULNERABILITY
-function searchProducts(category, minPrice) {
+function searchProducts(category, minPrice, dbConnection) {
   const query = `SELECT * FROM products WHERE category = '${category}' AND price >= ${minPrice}`;
   return dbConnection.promise().query(query);
 }
 
 // Order by injection - VULNERABILITY
-function getProductsSorted(sortColumn) {
+function getProductsSorted(sortColumn, dbConnection) {
   const query = `SELECT * FROM products ORDER BY ${sortColumn}`;
   return dbConnection.promise().query(query);
 }
 
 // LIKE clause injection - VULNERABILITY
-function searchByName(searchTerm) {
+function searchByName(searchTerm, dbConnection) {
   const query = `SELECT * FROM products WHERE name LIKE '%${searchTerm}%'`;
   return dbConnection.promise().query(query);
 }
 
 // Multiple injection points - VULNERABILITY
-function complexQuery(table, column, value, orderBy) {
+function complexQuery(table, column, value, orderBy, dbConnection) {
   const query = `SELECT ${column} FROM ${table} WHERE ${column} = '${value}' ORDER BY ${orderBy}`;
   return dbConnection.promise().query(query);
 }
 
 // INSERT injection - VULNERABILITY
-function insertUser(username, email, password) {
+function insertUser(username, email, password, dbConnection) {
   const query = `INSERT INTO users (username, email, password) VALUES ('${username}', '${email}', '${password}')`;
   return dbConnection.promise().query(query);
 }
 
 // UPDATE injection - VULNERABILITY
-function updateUserEmail(userId, newEmail) {
+function updateUserEmail(userId, newEmail, dbConnection) {
   const query = `UPDATE users SET email = '${newEmail}' WHERE id = ${userId}`;
   return dbConnection.promise().query(query);
 }
 
 // DELETE injection - VULNERABILITY
-function deleteUser(username) {
+function deleteUser(username, dbConnection) {
   const query = `DELETE FROM users WHERE username = '${username}'`;
   return dbConnection.promise().query(query);
 }
@@ -243,13 +236,6 @@ const UNSAFE_IP_REGEX = /^(\d{1,3}\.){3}\d{1,3}$/;
 
 // ===== CLEARTEXT STORAGE - CRITICAL =====
 
-// Storing passwords in plaintext - VULNERABILITY
-const userCredentials = {
-  admin: 'admin123',
-  user1: 'password123',
-  user2: 'qwerty'
-};
-
 // Credit card storage in memory - VULNERABILITY
 const storedCards = [];
 
@@ -290,6 +276,5 @@ module.exports = {
   UNSAFE_EMAIL_REGEX,
   UNSAFE_URL_REGEX,
   UNSAFE_IP_REGEX,
-  userCredentials,
   storeCard
 };

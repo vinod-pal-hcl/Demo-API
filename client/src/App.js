@@ -20,54 +20,82 @@ import './App.css';
 import DOMPurify from 'dompurify';
 
 function App() {
-  const [description, setDescription] = useState('');
-  const [redirectUrl, setRedirectUrl] = useState('');
-  const [token, setToken] = useState('');
+  const [description, setDescription] = useState("");
+  const [token, setToken] = useState("");
   const [user, setUser] = useState(null);
+  const [password, setPassword] = useState("");
+  const [redirectUrl, setRedirectUrl] = useState("");
 
-  // Example function to safely set HTML content
-  const createSafeHTML = (html) => {
-    const cleanHTML = DOMPurify.sanitize(html);
-    return { __html: cleanHTML };
-  };
+  useEffect(() => {
+    // Example fetching description
+    // Simulate fetching and sanitizing
+    const unsafeDescription = '<img src=x onerror=alert(1) />';
+    const sanitizedDescription = DOMPurify.sanitize(unsafeDescription);
+    setDescription(sanitizedDescription);
+  }, []);
 
   const handleLoginResponse = (response) => {
-    // Remove storing sensitive data directly in localStorage
-    // Instead, store only non-sensitive data or use secure httpOnly cookies (not possible directly in frontend)
-    if(response.data.token) {
-      setToken(response.data.token); // Managing token in React state
+    // Validate and handle tokens securely, do not store sensitive info in localStorage
+    // Use sessionStorage as less persistent, or better state management
+    if (response.data && response.data.token && typeof response.data.token === 'string') {
+      setToken(response.data.token); // Store token in memory state instead of localStorage
     }
-    if(response.data.user) {
-      setUser(response.data.user); // Managing user in React state
+    if (response.data && response.data.user) {
+      setUser(response.data.user);
     }
-    // Do NOT store plaintext password in localStorage
+    // Password should never be stored client-side
   };
 
-  const isSafeRedirectUrl = (url) => {
+  const safeRedirect = (url) => {
     try {
-      const parsedUrl = new URL(url, window.location.origin);
-      // Only allow same-origin redirects
-      return parsedUrl.origin === window.location.origin;
-    } catch (e) {
-      return false;
+      const trustedBase = window.location.origin;
+      const parsedUrl = new URL(url, trustedBase);
+      // Only allow redirects within the same origin
+      if (parsedUrl.origin === trustedBase) {
+        window.location.href = parsedUrl.href;
+      } else {
+        console.warn('Blocked untrusted redirect:', url);
+      }
+    } catch(e) {
+      console.warn('Invalid redirect URL:', url);
     }
   };
 
-  const handleRedirect = (url) => {
-    if(isSafeRedirectUrl(url)) {
-      window.location.href = url;
-    } else {
-      // Redirect to safe default location
-      window.location.href = '/';
-    }
-  };
-
-  // Example JSX with safe HTML rendering
+  // Component rendering
   return (
-    <div className="App">
-      <h1>My Secure App</h1>
-      <div className="description" dangerouslySetInnerHTML={createSafeHTML(description)} />
-      {/* The rest of the app components */}
+    <div>
+      {/* Render sanitized HTML description */}
+      <div dangerouslySetInnerHTML={{ __html: description }} />
+
+      {/* Login form example */}
+      <form onSubmit={async (e) => {
+        e.preventDefault();
+        // Simulated login request
+        try {
+          const response = await axios.post('/api/login', { password });
+          handleLoginResponse(response);
+        } catch (error) {
+          console.error('Login failed', error);
+        }
+      }}>
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Password"
+          autoComplete="off"
+        />
+        <button type="submit">Login</button>
+      </form>
+
+      {/* Redirect button example */}
+      <button onClick={() => safeRedirect(redirectUrl)}>Redirect</button>
+      <input
+        type="text"
+        value={redirectUrl}
+        onChange={(e) => setRedirectUrl(e.target.value)}
+        placeholder="Enter redirect URL"
+      />
     </div>
   );
 }

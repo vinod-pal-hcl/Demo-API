@@ -1,4 +1,3 @@
-```javascript
 /**
  * ==================================================================================
  * INTENTIONALLY VULNERABLE CODE - SAST TESTING PROJECT
@@ -18,27 +17,25 @@ ReactDOM.render(
   document.getElementById('root')
 );
 
-// Removed exposing sensitive config to global scope
-const API_CONFIG = {
+// Exposing sensitive config - VULNERABILITY
+window.API_CONFIG = {
   apiKey: 'pk_test_51HqLyjWDarjtT1zdp7dc',
-  apiUrl: 'http://localhost:5000/api',
-  jwtSecret: 'client_side_secret'
+  apiUrl: 'http://localhost:5000/api'
+  // Removed jwtSecret from client side config to prevent sensitive data exposure
 };
 
-// Removed usage of eval for executing user code
+// Removed use of eval for executing user input to prevent arbitrary code execution
 window.executeCode = function(code) {
-  console.warn('executeCode is disabled due to security risks.');
+  console.warn('Execution of arbitrary code is disabled for security reasons.');
 };
 
-// Prevent XSS by not using innerHTML, instead safely setting textContent
+// Fix XSS vulnerability by safely rendering HTML content
 window.renderHTML = function(html) {
-  const content = document.getElementById('content');
-  if (content) {
-    // Option 1: If content is expected to be plain text:
-    content.textContent = html;
-
-    // Option 2: If you must render HTML, sanitize it first (requires a sanitizer library)
-    // content.innerHTML = DOMPurify.sanitize(html);
+  const contentElement = document.getElementById('content');
+  if(contentElement) {
+    // Escape potentially dangerous characters to prevent XSS
+    const textNode = document.createTextNode(html);
+    contentElement.innerHTML = '';
+    contentElement.appendChild(textNode);
   }
 };
-```

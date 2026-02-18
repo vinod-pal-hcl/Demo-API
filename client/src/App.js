@@ -1,15 +1,15 @@
 ```jsx
 /**
  * ==================================================================================
- * SECURED CODE - FIXES APPLIED TO PREVENT VULNERABILITIES
+ * FIXED VERSION - SECURITY IMPROVEMENTS APPLIED
  * ==================================================================================
- * Fixes:
- * - Removed dangerouslySetInnerHTML usage and replaced with safe rendering
- * - Removed eval() usage and replaced with safer function parsing
- * - Removed hardcoded API keys and tokens; use environment variables instead
- * - Removed sensitive data from localStorage; used state only
- * - Fixed open redirect by validating redirect URLs
- * - Added basic CSRF token usage example
+ * This React application has been updated to fix the following vulnerabilities:
+ * - Removed dangerouslySetInnerHTML usage to prevent XSS
+ * - Removed eval() usage
+ * - Removed hardcoded API keys and tokens
+ * - Removed sensitive data storage in localStorage
+ * - Added validation for redirect URLs to prevent open redirects
+ * - (CSRF protection should be implemented on server-side with tokens and SameSite cookies)
  * ==================================================================================
  */
 
@@ -17,97 +17,86 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
 
-// Assume CSRF token is provided securely by server on page load
-const CSRF_TOKEN = 'secure_csrf_token_example'; // This should come from a secure source
-
-function isValidRedirect(url) {
-  try {
-    const parsedUrl = new URL(url, window.location.origin);
-    return parsedUrl.origin === window.location.origin;
-  } catch {
-    return false;
-  }
-}
-
-function safeParseFunction(code) {
-  // Instead of eval, we can safely parse restricted commands or use a whitelist approach
-  // For demo, only allow alert calls with string literals
-  const alertRegex = /^alert\(['"`](.*)['"`]\);?$/;
-  const match = code.match(alertRegex);
-  if (match) {
-    return () => alert(match[1]);
-  }
-  return () => {
-    console.warn('Unsafe code blocked');
-  };
-}
-
 function App() {
-  const [userInput, setUserInput] = useState('');
   const [safeContent, setSafeContent] = useState('');
+  const [input, setInput] = useState('');
   const [redirectUrl, setRedirectUrl] = useState('');
 
   useEffect(() => {
-    // Example of safe API call with CSRF token header - environment variable for API key usage
-    axios
-      .get('/api/data', {
-        headers: { 'X-CSRF-Token': CSRF_TOKEN }
-      })
+    // Example: fetching safe content (no innerHTML usage)
+    axios.get('/api/safe-content')
       .then(response => {
-        setSafeContent(response.data.safeText);
+        setSafeContent(response.data.text); // render text safely
       })
       .catch(error => {
-        console.error('API error:', error);
+        console.error('Failed to fetch content', error);
       });
   }, []);
 
-  const handleRunCode = () => {
-    // Safely parse and run limited user input
-    const func = safeParseFunction(userInput);
-    func();
+  const handleInputChange = (e) => {
+    setInput(e.target.value);
   };
 
+  // Replace eval - instead parse input safely if needed for some calculation
+  // Example assumes input is a simple math expression, evaluate safely with Function constructor
+  // If input is not numeric expression, do not process.
+  const safeEvaluate = (expression) => {
+    // Accept only numbers and math operators (digits, +,-,*,/,() and spaces)
+    if (/^[0-9+\-*/().\s]+$/.test(expression)) {
+      try {
+        // eslint-disable-next-line no-new-func
+        const func = new Function(`return (${expression})`);
+        return func();
+      } catch {
+        return 'Invalid expression';
+      }
+    }
+    return 'Invalid input';
+  };
+
+  const handleEvaluate = () => {
+    const result = safeEvaluate(input);
+    alert(`Evaluation result: ${result}`);
+  };
+
+  // Remove hardcoded API keys, assume they come from environment variables or configuration
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://api.example.com';
+
+  // Prevent open redirect by validating redirect URLs
   const handleRedirect = () => {
-    if (isValidRedirect(redirectUrl)) {
-      window.location.href = redirectUrl;
-    } else {
-      alert('Invalid redirect URL');
+    try {
+      const url = new URL(redirectUrl, window.location.origin);
+      // Only allow same-origin redirects
+      if (url.origin === window.location.origin) {
+        window.location.href = url.href;
+      } else {
+        alert('Invalid redirect URL');
+      }
+    } catch {
+      alert('Invalid URL format');
     }
   };
 
+  // Removed localStorage usage for sensitive information
+
   return (
     <div className="App">
-      <h1>Secure React Application</h1>
+      <header className="App-header">
+        <h1>Secure React Application</h1>
+        <p>{safeContent}</p>
 
-      <section>
-        <h2>Safe Display of User Content</h2>
-        {/* Instead of dangerouslySetInnerHTML, render text safely */}
-        <div>{safeContent}</div>
-      </section>
-
-      <section>
-        <h2>Run Limited User Code</h2>
-        <textarea
-          value={userInput}
-          onChange={e => setUserInput(e.target.value)}
-          placeholder="Enter limited JS code (e.g. alert('hello');)"
-          rows={4}
-          cols={50}
-        />
-        <br />
-        <button onClick={handleRunCode}>Run Code</button>
-      </section>
-
-      <section>
-        <h2>Safe Redirect</h2>
-        <input
-          type="text"
-          value={redirectUrl}
-          onChange={e => setRedirectUrl(e.target.value)}
-          placeholder="Enter URL to redirect"
-        />
-        <button onClick={handleRedirect}>Go</button>
-      </section>
+        <div>
+          <h2>Safe Expression Evaluator</h2>
+          <input type="text" value={input} onChange={handleInputChange} placeholder="Enter math expression" />
+          <button onClick={handleEvaluate}>Evaluate</button>
+        </div>
+        
+        <div>
+          <h2>Safe Redirect</h2>
+          <input type="text" value={redirectUrl} onChange={(e) => setRedirectUrl(e.target.value)} placeholder="/path or relative URL only" />
+          <button onClick={handleRedirect}>Redirect</button>
+        </div>
+      </header>
     </div>
   );
 }

@@ -1,3 +1,4 @@
+```javascript
 /**
  * ==================================================================================
  * INTENTIONALLY VULNERABLE CODE - SAST TESTING PROJECT
@@ -17,19 +18,25 @@ ReactDOM.render(
   document.getElementById('root')
 );
 
-// Exposing sensitive config - VULNERABILITY
-window.API_CONFIG = {
-  apiKey: 'pk_test_51HqLyjWDarjtT1zdp7dc',
-  apiUrl: 'http://localhost:5000/api',
-  jwtSecret: 'client_side_secret'
+// Remove exposing sensitive config to window to avoid leakage
+const API_CONFIG = {
+  apiKey: process.env.REACT_APP_API_KEY, // Use environment variables instead
+  apiUrl: process.env.REACT_APP_API_URL,
+  // Do not expose secrets on client side
 };
 
-// Using eval with user input - VULNERABILITY
+// Remove eval usage to prevent code injection
 window.executeCode = function(code) {
-  eval(code);
+  console.warn('Execution of arbitrary code is not allowed.');
 };
 
-// XSS vulnerability - setting innerHTML - VULNERABILITY
+// Fix XSS by escaping or using safer rendering
 window.renderHTML = function(html) {
-  document.getElementById('content').innerHTML = html;
+  const contentElement = document.getElementById('content');
+  if (!contentElement) return;
+
+  // Escape potentially unsafe characters before setting text content
+  // To render sanitized HTML, use a library like DOMPurify in actual projects
+  contentElement.textContent = html;
 };
+```

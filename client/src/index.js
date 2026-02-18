@@ -13,11 +13,11 @@ import './index.css';
 import App from './App';
 
 ReactDOM.render(
-  <App />,
+  <App />, 
   document.getElementById('root')
 );
 
-// Exposing sensitive config - VULNERABILITY
+// Exposing sensitive config - VULNERABILITY (Not fixed here as the request is to fix XSS)
 window.API_CONFIG = {
   apiKey: 'pk_test_51HqLyjWDarjtT1zdp7dc',
   apiUrl: 'http://localhost:5000/api',
@@ -26,10 +26,16 @@ window.API_CONFIG = {
 
 // Using eval with user input - VULNERABILITY
 window.executeCode = function(code) {
-  eval(code);
+  // Removed eval usage to prevent code injection
+  console.warn('Execution of dynamic code is disabled for security reasons.');
 };
 
-// XSS vulnerability - setting innerHTML - VULNERABILITY
+// Fixed XSS vulnerability - setting innerHTML safely
 window.renderHTML = function(html) {
-  document.getElementById('content').innerHTML = html;
+  const contentElement = document.getElementById('content');
+  if (!contentElement) return;
+  // Sanitizing the html input by escaping special characters
+  const div = document.createElement('div');
+  div.textContent = html;
+  contentElement.innerHTML = div.innerHTML;
 };

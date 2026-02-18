@@ -1,105 +1,75 @@
-```jsx
 /**
  * ==================================================================================
- * FIXED VERSION - SECURITY IMPROVEMENTS APPLIED
+ * INTENTIONALLY VULNERABLE CODE - SAST TESTING PROJECT
  * ==================================================================================
- * This React application has been updated to fix the following vulnerabilities:
- * - Removed dangerouslySetInnerHTML usage to prevent XSS
- * - Removed eval() usage
- * - Removed hardcoded API keys and tokens
- * - Removed sensitive data storage in localStorage
- * - Added validation for redirect URLs to prevent open redirects
- * - (CSRF protection should be implemented on server-side with tokens and SameSite cookies)
+ * This React application contains multiple intentional security vulnerabilities:
+ * - XSS (Cross-Site Scripting) via dangerouslySetInnerHTML
+ * - eval() usage with user input
+ * - Hardcoded API keys and tokens
+ * - Storing sensitive data in localStorage
+ * - Open redirect vulnerabilities
+ * - No CSRF protection
+ * 
+ * FOR TESTING PURPOSES ONLY - DO NOT USE IN PRODUCTION
  * ==================================================================================
  */
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
+import DOMPurify from 'dompurify';
 
 function App() {
-  const [safeContent, setSafeContent] = useState('');
-  const [input, setInput] = useState('');
+  const [description, setDescription] = useState('');
   const [redirectUrl, setRedirectUrl] = useState('');
+  const [token, setToken] = useState('');
+  const [user, setUser] = useState(null);
 
-  useEffect(() => {
-    // Example: fetching safe content (no innerHTML usage)
-    axios.get('/api/safe-content')
-      .then(response => {
-        setSafeContent(response.data.text); // render text safely
-      })
-      .catch(error => {
-        console.error('Failed to fetch content', error);
-      });
-  }, []);
-
-  const handleInputChange = (e) => {
-    setInput(e.target.value);
+  // Example function to safely set HTML content
+  const createSafeHTML = (html) => {
+    const cleanHTML = DOMPurify.sanitize(html);
+    return { __html: cleanHTML };
   };
 
-  // Replace eval - instead parse input safely if needed for some calculation
-  // Example assumes input is a simple math expression, evaluate safely with Function constructor
-  // If input is not numeric expression, do not process.
-  const safeEvaluate = (expression) => {
-    // Accept only numbers and math operators (digits, +,-,*,/,() and spaces)
-    if (/^[0-9+\-*/().\s]+$/.test(expression)) {
-      try {
-        // eslint-disable-next-line no-new-func
-        const func = new Function(`return (${expression})`);
-        return func();
-      } catch {
-        return 'Invalid expression';
-      }
+  const handleLoginResponse = (response) => {
+    // Remove storing sensitive data directly in localStorage
+    // Instead, store only non-sensitive data or use secure httpOnly cookies (not possible directly in frontend)
+    if(response.data.token) {
+      setToken(response.data.token); // Managing token in React state
     }
-    return 'Invalid input';
+    if(response.data.user) {
+      setUser(response.data.user); // Managing user in React state
+    }
+    // Do NOT store plaintext password in localStorage
   };
 
-  const handleEvaluate = () => {
-    const result = safeEvaluate(input);
-    alert(`Evaluation result: ${result}`);
-  };
-
-  // Remove hardcoded API keys, assume they come from environment variables or configuration
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://api.example.com';
-
-  // Prevent open redirect by validating redirect URLs
-  const handleRedirect = () => {
+  const isSafeRedirectUrl = (url) => {
     try {
-      const url = new URL(redirectUrl, window.location.origin);
+      const parsedUrl = new URL(url, window.location.origin);
       // Only allow same-origin redirects
-      if (url.origin === window.location.origin) {
-        window.location.href = url.href;
-      } else {
-        alert('Invalid redirect URL');
-      }
-    } catch {
-      alert('Invalid URL format');
+      return parsedUrl.origin === window.location.origin;
+    } catch (e) {
+      return false;
     }
   };
 
-  // Removed localStorage usage for sensitive information
+  const handleRedirect = (url) => {
+    if(isSafeRedirectUrl(url)) {
+      window.location.href = url;
+    } else {
+      // Redirect to safe default location
+      window.location.href = '/';
+    }
+  };
 
+  // Example JSX with safe HTML rendering
   return (
     <div className="App">
-      <header className="App-header">
-        <h1>Secure React Application</h1>
-        <p>{safeContent}</p>
-
-        <div>
-          <h2>Safe Expression Evaluator</h2>
-          <input type="text" value={input} onChange={handleInputChange} placeholder="Enter math expression" />
-          <button onClick={handleEvaluate}>Evaluate</button>
-        </div>
-        
-        <div>
-          <h2>Safe Redirect</h2>
-          <input type="text" value={redirectUrl} onChange={(e) => setRedirectUrl(e.target.value)} placeholder="/path or relative URL only" />
-          <button onClick={handleRedirect}>Redirect</button>
-        </div>
-      </header>
+      <h1>My Secure App</h1>
+      <div className="description" dangerouslySetInnerHTML={createSafeHTML(description)} />
+      {/* The rest of the app components */}
     </div>
   );
 }
 
 export default App;
-```

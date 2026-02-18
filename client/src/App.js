@@ -1,3 +1,4 @@
+```jsx
 /**
  * ==================================================================================
  * INTENTIONALLY VULNERABLE CODE - SAST TESTING PROJECT
@@ -17,3 +18,4 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
+```

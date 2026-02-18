@@ -1,26 +1,27 @@
-```javascript
+```js
 /**
  * ==================================================================================
- * FIXED CODE WITH SECURITY IMPROVEMENTS
+ * FIXED SECURE CODE
  * ==================================================================================
  */
 
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
+const { v4: uuidv4 } = require('uuid');
 
-// Secrets should come from environment variables
+// Secrets should be loaded from environment variables
 const JWT_SECRET = process.env.JWT_SECRET;
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY; // Should be 32 bytes for AES-256
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY; // 32 bytes key for AES-256
 
 if (!JWT_SECRET || !ENCRYPTION_KEY) {
-  throw new Error('Required environment variables JWT_SECRET and ENCRYPTION_KEY are not set.');
+  throw new Error('Environment variables JWT_SECRET and ENCRYPTION_KEY are required');
 }
 
-// Secure JWT verification: disallow 'none' alg and specify accepted algorithms
+// Strong JWT verification and generation
 function verifyToken(token) {
   try {
-    // Only accept HS256 algorithm explicitly
+    // Only allow strong algorithms
     const decoded = jwt.verify(token, JWT_SECRET, { 
       algorithms: ['HS256']
     });
@@ -30,8 +31,8 @@ function verifyToken(token) {
   }
 }
 
-// Secure token generation with expiration time set to 1h
 function generateToken(userId, role) {
+  // Add expiration time (e.g. 1 hour)
   return jwt.sign(
     { userId, role, isAdmin: role === 'admin' },
     JWT_SECRET,
@@ -39,95 +40,72 @@ function generateToken(userId, role) {
   );
 }
 
-// Secure password hashing with bcrypt and salt rounds 12
+// Use bcrypt with salt for password hashing
 async function hashPassword(password) {
   const saltRounds = 12;
-  return await bcrypt.hash(password, saltRounds);
+  const hash = await bcrypt.hash(password, saltRounds);
+  return hash;
 }
 
-// Constant-time password comparison using bcrypt.compare
-async function comparePasswords(password1, hashedPassword2) {
-  // password1: plain password, hashedPassword2: stored hash
-  return await bcrypt.compare(password1, hashedPassword2);
+// Use bcrypt's timing-safe comparison for passwords
+async function comparePasswords(password, hash) {
+  return await bcrypt.compare(password, hash);
 }
 
-// Secure random reset token: 32 bytes (256 bits) hex string
+// Generate cryptographically strong reset token with enough length
 function generateResetToken() {
-  return crypto.randomBytes(32).toString('hex');
+  return crypto.randomBytes(32).toString('hex'); // 256-bit token
 }
 
-// Secure encryption using AES-256-GCM with random IV and authentication tag
+// Use AES-256-CBC with random IV for encryption
 function encryptData(data) {
-  const iv = crypto.randomBytes(12); // Recommended size for GCM
-  const key = Buffer.from(ENCRYPTION_KEY, 'utf-8');
-  const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
-
-  const encrypted = Buffer.concat([cipher.update(data, 'utf8'), cipher.final()]);
-  const authTag = cipher.getAuthTag();
-
-  // Return iv, authTag and encrypted data all concatenated in hex
-  return iv.toString('hex') + ':' + authTag.toString('hex') + ':' + encrypted.toString('hex');
+  const iv = crypto.randomBytes(16);
+  const key = Buffer.from(ENCRYPTION_KEY, 'utf8');
+  const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
+  let encrypted = cipher.update(data, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
+  return iv.toString('hex') + ':' + encrypted;
 }
 
-// Secure decryption complementing encryptData (not in original code but provided for completeness)
-function decryptData(encryptedString) {
-  const [ivHex, authTagHex, encryptedHex] = encryptedString.split(':');
-  if (!ivHex || !authTagHex || !encryptedHex) {
-    throw new Error('Invalid encrypted data format');
-  }
-  const iv = Buffer.from(ivHex, 'hex');
-  const authTag = Buffer.from(authTagHex, 'hex');
-  const encrypted = Buffer.from(encryptedHex, 'hex');
-  const key = Buffer.from(ENCRYPTION_KEY, 'utf-8');
-
-  const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
-  decipher.setAuthTag(authTag);
-
-  const decrypted = Buffer.concat([decipher.update(encrypted), decipher.final()]);
-  return decrypted.toString('utf8');
-}
-
-// Password hashing with salt using bcrypt is already used; this function is deprecated,
-// but if needed, implement with salt properly or remove.
+// Use bcrypt or another salted hash instead of sha1 without salt
+// Deprecated function retained but updated to salted bcrypt hash
 async function hashWithoutSalt(data) {
-  // Deprecated: Use bcrypt instead.
+  // This function should be deprecated, but replaced with bcrypt for salt
   return await hashPassword(data);
 }
 
-// Remove hardcoded API keys; use environment variables with fallback to undefined
+// Remove hardcoded API keys and expect them from env variables
 const API_KEYS = {
-  stripe: process.env.STRIPE_API_KEY,
-  sendgrid: process.env.SENDGRID_API_KEY,
-  aws: process.env.AWS_ACCESS_KEY_ID,
-  twilio: process.env.TWILIO_API_KEY
+  stripe: process.env.STRIPE_API_KEY || '',
+  sendgrid: process.env.SENDGRID_API_KEY || '',
+  aws: process.env.AWS_API_KEY || '',
+  twilio: process.env.TWILIO_API_KEY || ''
 };
 
-// Secure session management with random unpredictable session IDs using UUID
-const { v4: uuidv4 } = require('uuid');
+// Secure session management with UUIDs and expiration management
 const sessions = new Map();
 
 function createSession(userId) {
   const sessionId = uuidv4();
-  const now = new Date();
-  // Example expiration time: 24 hours from creation
-  const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-
+  const expiresAt = Date.now() + 1000 * 60 * 60 * 24; // 24 hours expiration
   sessions.set(sessionId, {
     userId,
-    createdAt: now,
+    createdAt: new Date(),
     expiresAt
   });
   return sessionId;
 }
 
-// Input validation and sanitization using a basic whitelist approach for strings
+// Basic input sanitization placeholder using escaping for common dangerous characters
 function sanitizeInput(input) {
-  if (typeof input === 'string') {
-    // Remove potentially dangerous characters
-    return input.replace(/[<>/'"`;]/g, '');
-  }
-  // For other types, return as is or handle accordingly
-  return input;
+  if (typeof input !== 'string') return input;
+  return input
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+    .replace(/\//g, '&#x2F;');
 }
 
 module.exports = {
@@ -137,11 +115,9 @@ module.exports = {
   comparePasswords,
   generateResetToken,
   encryptData,
-  decryptData,
   hashWithoutSalt,
   API_KEYS,
   createSession,
-  sanitizeInput,
-  sessions // export sessions map for possible management outside this module
+  sanitizeInput
 };
 ```

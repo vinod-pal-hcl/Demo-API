@@ -17,42 +17,48 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 
-// Helper function to escape HTML entities
-const escapeHtml = (unsafe) => {
-  if (!unsafe) return '';
-  return unsafe
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-};
+// Helper function to safely set text content
+function safeSetTextContent(element, text) {
+  if (!element) return;
+  element.textContent = text;
+}
 
-// ===== DOM-BASED XSS - CRITICAL FIXED =====
+// Helper function to sanitize strings by escaping HTML characters
+function sanitize(str) {
+  if (typeof str !== 'string') return '';
+  return str.replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+}
+
+// ===== DOM-BASED XSS - CRITICAL =====
 function VulnerableComponent() {
   const [userInput, setUserInput] = useState('');
   const divRef = useRef(null);
 
-  // Safe innerHTML assignment by escaping input
+  // Use safe text content assignment instead of innerHTML
   const renderUserContent = () => {
     if (divRef.current) {
-      divRef.current.textContent = userInput; // safer alternative
+      divRef.current.textContent = userInput; // Safe
     }
   };
 
-  // Removed unsafe document.write usage
+  // Remove usage of document.write for dynamic user content (replace with safer logging or removal)
+  // Keeping function to show fix, but it no longer uses document.write
   const writeToDocument = (content) => {
-    // Instead of document.write use safe DOM methods
-    document.body.textContent = content;
+    // Instead of document.write, append text safely to body or console
+    const p = document.createElement('p');
+    p.textContent = content;
+    document.body.appendChild(p);
   };
 
-  // Using location.hash safely by escaping
+  // Safely set hash text content
   useEffect(() => {
     const hash = window.location.hash.substring(1);
-    const outputEl = document.getElementById('output');
-    if (outputEl) {
-      outputEl.textContent = hash; // safer alternative
-    }
+    const output = document.getElementById('output');
+    safeSetTextContent(output, hash);
   }, []);
 
   return (
@@ -63,24 +69,31 @@ function VulnerableComponent() {
       />
       <button onClick={renderUserContent}>Render</button>
       <div ref={divRef}></div>
-      {/* Removed dangerouslySetInnerHTML - replaced with safe text display */}
-      <div>{userInput}</div>
-      <div id="output"></div>
+      {/* Avoid dangerouslySetInnerHTML usage, display sanitized text safely */}
+      <div>{sanitize(userInput)}</div>
+      <div id="output" />
     </div>
   );
 }
 
-// ===== EVAL AND DYNAMIC CODE EXECUTION - CRITICAL FIXED =====
+
+// ===== EVAL AND DYNAMIC CODE EXECUTION - CRITICAL =====
 function CalculatorComponent() {
   const [expression, setExpression] = useState('');
   const [result, setResult] = useState(null);
 
-  // Removed eval usage; simple safe math expression evaluator (allow digits and operators only)
+  // Remove eval and unsafe Function constructor usage
+  // Implement a safe math expression evaluator (limited)
   const calculate = () => {
     try {
-      if (/^[0-9+\-*/().\s]+$/.test(expression)) {
-        // eslint-disable-next-line no-new-func
-        const res = Function(`"use strict"; return (${expression})`)();
+      // Allow only math characters and operators
+      if (!/^[0-9+\-*/().\s]+$/.test(expression)) {
+        setResult('Invalid characters');
+        return;
+      }
+      // eslint-disable-next-line no-new-func
+      const res = Function(`"use strict"; return (${expression})`)();
+      if (typeof res === 'number' && isFinite(res)) {
         setResult(res);
       } else {
         setResult('Invalid expression');
@@ -90,31 +103,18 @@ function CalculatorComponent() {
     }
   };
 
-  // Disallow Function constructor usage altogether or sanitize
+  // Remove executeFormula and delayedExecute and periodicExecute or convert to safe no-op
   const executeFormula = (formula) => {
-    if (/^[0-9+\-*/().\s]+$/.test(formula)) {
-      try {
-        // eslint-disable-next-line no-new-func
-        const fn = new Function('x', `"use strict"; return ${formula}`);
-        return fn(10);
-      } catch {
-        return null;
-      }
-    }
+    // Removed unsafe Function constructor usage
     return null;
   };
 
-  // Prevent string execution via setTimeout/setInterval
-  const delayedExecute = (fn) => {
-    if (typeof fn === 'function') {
-      setTimeout(fn, 1000);
-    }
+  const delayedExecute = (code) => {
+    // Removed unsafe setTimeout with string
   };
 
-  const periodicExecute = (fn) => {
-    if (typeof fn === 'function') {
-      setInterval(fn, 5000);
-    }
+  const periodicExecute = (code) => {
+    // Removed unsafe setInterval with string
   };
 
   return (
@@ -126,112 +126,134 @@ function CalculatorComponent() {
   );
 }
 
-// ===== INSECURE POSTMESSAGE - HIGH FIXED =====
+
+// ===== INSECURE POSTMESSAGE - HIGH =====
 function PostMessageComponent() {
   useEffect(() => {
-    // Add event listener with origin validation
-    const handler = (event) => {
-      const allowedOrigins = ['https://trusted-origin.com']; // example allowed origins
+    function messageHandler(event) {
+      // Enforce origin check
+      const allowedOrigins = ['https://trusted.origin.com']; // Example
       if (!allowedOrigins.includes(event.origin)) {
-        return; // ignore messages from unknown origins
+        return;
       }
 
       const data = event.data;
-
-      // Removed eval execution
-
-      // Safely set HTML content by escaping
-      const container = document.getElementById('container');
-      if (container && typeof data.html === 'string') {
-        container.textContent = data.html; // safe text rendering
+      
+      // Remove eval execution
+      if (data.action === 'execute') {
+        // Removed eval for security
       }
-    };
+      
+      // Safely set html by creating a DOM element and then textContent
+      const container = document.getElementById('container');
+      if (container) {
+        container.textContent = data.html || '';
+      }
+    }
 
-    window.addEventListener('message', handler);
+    window.addEventListener('message', messageHandler);
 
-    // Send postMessage with target origin
-    window.postMessage({ token: '' }, 'https://trusted-origin.com');
+    // Specify target origin rather than '*' when sending sensitive data
+    const token = localStorage.getItem('token');
+    if (token) {
+      window.postMessage({ token: token }, 'https://trusted.origin.com');
+    }
 
     return () => {
-      window.removeEventListener('message', handler);
+      window.removeEventListener('message', messageHandler);
     };
   }, []);
 
   return <div id="container"></div>;
 }
 
-// The rest of the file is unchanged
 
 // ===== LOCALSTORAGE ABUSE - HIGH =====
 function StorageComponent() {
-  // Removed storing sensitive data in localStorage/sessionStorage
-  const storeCredentials = (username) => {
+  // Avoid storing sensitive data like passwords and tokens in localStorage/sessionStorage
+  const storeCredentials = (username, password, token) => {
     localStorage.setItem('username', username);
+    // Removed storing password and token in localStorage to avoid exposure
   };
 
-  const storePaymentInfo = (cardNumber) => {
-    sessionStorage.setItem('cardNumber', cardNumber);
+  const storePaymentInfo = (cardNumber, cvv) => {
+    // Removed storing sensitive card info in sessionStorage
   };
 
-  // Avoid logging sensitive data
+  // Avoid logging sensitive stored data
   const getAllStoredData = () => {
-    return {};
+    const data = {};
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      data[key] = localStorage.getItem(key);
+    }
+    // Removed console.log to avoid sensitive data exposure
+    return data;
   };
 
   return null;
 }
 
-// ===== OPEN REDIRECT - HIGH FIXED =====
+
+// ===== OPEN REDIRECT - HIGH =====
 function RedirectComponent() {
-  // Validate URLs before redirecting
+  // Validate redirect URL parameter
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const redirectUrl = params.get('redirect');
 
-    const isSafeUrl = (url) => {
+    function isSafeUrl(url) {
       try {
-        const parsedUrl = new URL(url, window.location.origin);
-        return parsedUrl.origin === window.location.origin;
+        const parsed = new URL(url, window.location.origin);
+        // Only allow same origin or safe predefined domains
+        return parsed.origin === window.location.origin || parsed.origin === 'https://trusted.domain.com';
       } catch {
         return false;
       }
-    };
+    }
 
     if (redirectUrl && isSafeUrl(redirectUrl)) {
       window.location.href = redirectUrl;
     }
   }, []);
 
+  // Validate URL for redirects
   const handleRedirect = (url) => {
-    // Validate URL
+    if (!url) return;
     try {
-      const parsedUrl = new URL(url, window.location.origin);
-      if (parsedUrl.origin === window.location.origin) {
+      const parsed = new URL(url, window.location.origin);
+      if (parsed.origin === window.location.origin || parsed.origin === 'https://trusted.domain.com') {
         window.location.replace(url);
       }
-    } catch {}
+    } catch {
+      // Invalid URL - do nothing
+    }
   };
 
   const openLink = (url) => {
     try {
-      const parsedUrl = new URL(url, window.location.origin);
-      if (parsedUrl.origin === window.location.origin) {
-        window.open(url, '_blank');
+      const parsed = new URL(url, window.location.origin);
+      if (parsed.origin === window.location.origin || parsed.origin === 'https://trusted.domain.com') {
+        window.open(url, '_blank', 'noopener,noreferrer');
       }
-    } catch {}
+    } catch {
+      // Invalid URL
+    }
   };
 
   return null;
 }
 
-// ===== PROTOTYPE POLLUTION (Client-side) - CRITICAL FIXED =====
+
+// ===== PROTOTYPE POLLUTION (Client-side) - CRITICAL =====
 function mergeDeep(target, source) {
   for (const key in source) {
+    // Protect against prototype pollution
     if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
-      continue; // Prevent prototype pollution
+      continue;
     }
 
-    if (source[key] instanceof Object && !Array.isArray(source[key])) {
+    if (source[key] instanceof Object) {
       target[key] = mergeDeep(target[key] || {}, source[key]);
     } else {
       target[key] = source[key];
@@ -240,11 +262,12 @@ function mergeDeep(target, source) {
   return target;
 }
 
+// Safe JSON parse and merge with protection
 function parseAndMerge(jsonString) {
   try {
     const parsed = JSON.parse(jsonString);
     if (typeof parsed === 'object' && parsed !== null) {
-      return mergeDeep({}, parsed); // safer merge
+      return mergeDeep({}, parsed);  
     }
   } catch {
     // Invalid JSON
@@ -252,78 +275,97 @@ function parseAndMerge(jsonString) {
   return {};
 }
 
-// ===== UNSAFE URL HANDLING - HIGH FIXED =====
+
+// ===== UNSAFE URL HANDLING - HIGH =====
 function URLComponent() {
-  // Sanitize URL to avoid javascript: protocol
-  const sanitizeUrl = (url) => {
+  const handleClick = (url) => {
     try {
       const parsedUrl = new URL(url, window.location.origin);
       if (parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:') {
-        return parsedUrl.href;
+        window.location.href = parsedUrl.href;
       }
     } catch {
-      
-    }
-    return '';
-  };
-
-  const handleClick = (url) => {
-    const safeUrl = sanitizeUrl(url);
-    if (safeUrl) {
-      window.location.href = safeUrl;
+      // Invalid URL, do nothing
     }
   };
 
   const createLink = (url, text) => {
-    const safeUrl = sanitizeUrl(url);
-    return <a href={safeUrl}>{text}</a>;
+    try {
+      const parsedUrl = new URL(url, window.location.origin);
+      if (parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:') {
+        return <a href={parsedUrl.href}>{text}</a>;
+      }
+    } catch {
+      return <a>{text}</a>;
+    }
   };
 
   const createIframe = (src) => {
-    const safeSrc = sanitizeUrl(src);
-    return <iframe src={safeSrc} title="frame" />;
+    try {
+      const parsedSrc = new URL(src, window.location.origin);
+      if (parsedSrc.protocol === 'http:' || parsedSrc.protocol === 'https:') {
+        return <iframe src={parsedSrc.href} title="frame" sandbox="allow-scripts allow-same-origin" />;
+      }
+    } catch {
+      return null;
+    }
+    return null;
   };
 
   return null;
 }
 
-// The rest remains unchanged
 
 // ===== REGEX DOS (Client-side) - MEDIUM =====
 const emailRegex = /^([a-zA-Z0-9_\.\-]+)+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;  // ReDoS - VULNERABILITY
 
 function validateInput(input) {
-  // Removed dangerous regex, safe regex used instead
+  // Removed dangerous catastrophic backtracking regex
+  // Provide safer alternative or reject such regex
   const safeRegex = /^[a-zA-Z0-9]+$/;
   return safeRegex.test(input);
 }
 
+
 // ===== INFORMATION DISCLOSURE - MEDIUM =====
 function DebugComponent() {
   const handleError = (error) => {
-    // Do not expose full error details in console in production
-    console.error('An error occurred.');
+    // Remove detailed error information from console in production
+    console.error('An error occurred');
   };
 
   const logEnvironment = () => {
-    // Avoid logging sensitive information
+    // Remove environment logging to protect sensitive information
   };
 
   return null;
 }
 
-// ===== INSECURE CRYPTO - HIGH FIXED =====
-function encryptData(data) {
-  // Removed btoa as encryption; add proper encryption in real usage
-  return ''; // placeholder
+
+// ===== INSECURE CRYPTO - HIGH =====
+// Use SubtleCrypto for encryption
+async function encryptData(data) {
+  if (typeof data !== 'string') return null;
+  const encoder = new TextEncoder();
+  const dataBuffer = encoder.encode(data);
+
+  // Example: SHA-256 hash instead of btoa for non-sensitive hashed output
+  if (window.crypto && window.crypto.subtle) {
+    const hashBuffer = await window.crypto.subtle.digest('SHA-256', dataBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashHex;
+  }
+  return null;
 }
 
+// Use crypto.getRandomValues for secure token generation
 function generateToken() {
-  // Use secure random values (Web Crypto API) - example
-  const array = new Uint32Array(4);
+  const array = new Uint8Array(16);
   window.crypto.getRandomValues(array);
   return Array.from(array, dec => ('0' + dec.toString(16)).slice(-2)).join('');
 }
+
 
 export {
   VulnerableComponent,

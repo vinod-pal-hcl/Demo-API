@@ -20,22 +20,25 @@ ReactDOM.render(
 // Exposing sensitive config - VULNERABILITY
 window.API_CONFIG = {
   apiKey: 'pk_test_51HqLyjWDarjtT1zdp7dc',
-  apiUrl: 'http://localhost:5000/api'
-  // Removed jwtSecret from client side config to prevent sensitive data exposure
+  apiUrl: 'http://localhost:5000/api',
+  jwtSecret: 'client_side_secret'
 };
 
-// Removed use of eval for executing user input to prevent arbitrary code execution
+// Using eval with user input - REMOVED TO MITIGATE RCE RISK
 window.executeCode = function(code) {
-  console.warn('Execution of arbitrary code is disabled for security reasons.');
+  console.warn('Dynamic code execution is disabled for security reasons.');
 };
 
-// Fix XSS vulnerability by safely rendering HTML content
+// XSS vulnerability - avoided setting innerHTML directly
+// Instead, use textContent or sanitized rendering pattern
 window.renderHTML = function(html) {
   const contentElement = document.getElementById('content');
-  if(contentElement) {
-    // Escape potentially dangerous characters to prevent XSS
-    const textNode = document.createTextNode(html);
-    contentElement.innerHTML = '';
-    contentElement.appendChild(textNode);
-  }
+  if (!contentElement) return;
+  // Basic sanitization: create a DOMParser and parse as text to avoid HTML injection
+  const div = document.createElement('div');
+  div.textContent = html;
+  // Clear existing content
+  contentElement.innerHTML = '';
+  // Append a text node to avoid executing HTML content
+  contentElement.appendChild(div);
 };

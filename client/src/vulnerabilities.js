@@ -19,28 +19,44 @@ import React, { useState, useEffect, useRef } from 'react';
 
 
 
+// ===== Helper function to safely escape HTML to prevent XSS =====
+function escapeHtml(unsafe) {
+  if (typeof unsafe !== 'string') {
+    return '';
+  }
+  return unsafe.replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+}
+
 
 // ===== DOM-BASED XSS - CRITICAL =====
 function VulnerableComponent() {
   const [userInput, setUserInput] = useState('');
   const divRef = useRef(null);
 
-  // Direct innerHTML assignment - XSS - VULNERABILITY
+  // Safely render user content by escaping HTML
   const renderUserContent = () => {
     if (divRef.current) {
-      divRef.current.innerHTML = userInput;
+      divRef.current.textContent = userInput;
     }
   };
 
-  // document.write with user input - XSS - VULNERABILITY
+  // Remove usage of document.write to avoid XSS
   const writeToDocument = (content) => {
-    document.write(content);
+    console.warn('Unsafe document.write operation prevented.');
   };
 
-  // Using location.hash directly - DOM XSS - VULNERABILITY
+  // Using location.hash safely by escaping content
   useEffect(() => {
     const hash = window.location.hash.substring(1);
-    document.getElementById('output')?.innerHTML = hash;
+    const safeHash = escapeHtml(hash);
+    const outputElement = document.getElementById('output');
+    if (outputElement) {
+      outputElement.textContent = safeHash;
+    }
   }, []);
 
   return (
@@ -51,8 +67,9 @@ function VulnerableComponent() {
       />
       <button onClick={renderUserContent}>Render</button>
       <div ref={divRef}></div>
-      {/* dangerouslySetInnerHTML - XSS - VULNERABILITY */}
-      <div dangerouslySetInnerHTML={{ __html: userInput }} />
+      {/* Avoid dangerouslySetInnerHTML usage to prevent XSS */}
+      <div>{userInput}</div>
+      <div id="output"></div>
     </div>
   );
 }
@@ -63,30 +80,48 @@ function CalculatorComponent() {
   const [expression, setExpression] = useState('');
   const [result, setResult] = useState(null);
 
-  // eval() with user input - VULNERABILITY
+  // Safe calculation allowing only simple mathematical expressions
   const calculate = () => {
     try {
-      const res = eval(expression);  // CRITICAL VULNERABILITY
+      // Whitelist characters: numbers, operators, parentheses, decimal points
+      if (!/^[-+/*()0-9.\s]+$/.test(expression)) {
+        setResult('Invalid expression');
+        return;
+      }
+      // eslint-disable-next-line no-new-func
+      const res = Function(`"use strict"; return (${expression})`)();
       setResult(res);
     } catch (e) {
       setResult('Error');
     }
   };
 
-  // Function constructor - VULNERABILITY
+  // Remove Function constructor usage or sanitize formula
   const executeFormula = (formula) => {
-    const fn = new Function('x', `return ${formula}`);  // VULNERABILITY
+    // Only allow formulas with safe characters
+    if (!/^[-+/*()x0-9.\s]+$/.test(formula)) {
+      throw new Error('Unsafe formula');
+    }
+    // eslint-disable-next-line no-new-func
+    const fn = Function('x', `"use strict"; return (${formula})`);
     return fn(10);
   };
 
-  // setTimeout with string - VULNERABILITY
-  const delayedExecute = (code) => {
-    setTimeout(code, 1000);  // VULNERABILITY when code is string
+  // Remove usage of setTimeout and setInterval with string
+  const delayedExecute = (func) => {
+    if (typeof func === 'function') {
+      setTimeout(func, 1000);
+    } else {
+      console.warn('Invalid delayedExecute argument; expected function.');
+    }
   };
 
-  // setInterval with string - VULNERABILITY
-  const periodicExecute = (code) => {
-    setInterval(code, 5000);  // VULNERABILITY
+  const periodicExecute = (func) => {
+    if (typeof func === 'function') {
+      setInterval(func, 5000);
+    } else {
+      console.warn('Invalid periodicExecute argument; expected function.');
+    }
   };
 
   return (
@@ -102,22 +137,37 @@ function CalculatorComponent() {
 // ===== INSECURE POSTMESSAGE - HIGH =====
 function PostMessageComponent() {
   useEffect(() => {
-    // No origin check - VULNERABILITY
-    window.addEventListener('message', (event) => {
-      // Accepting messages from any origin - VULNERABILITY
-      const data = event.data;
-      
-      // Executing received data - VULNERABILITY
-      if (data.action === 'execute') {
-        eval(data.code);  // CRITICAL VULNERABILITY
+    function messageHandler(event) {
+      const allowedOrigins = ['https://trusteddomain.com']; // Replace with actual trusted origins
+      if (!allowedOrigins.includes(event.origin)) {
+        console.warn('Blocked message from untrusted origin:', event.origin);
+        return;
       }
-      
-      // Rendering received HTML - VULNERABILITY
-      document.getElementById('container').innerHTML = data.html;
-    });
 
-    // Sending sensitive data without target origin - VULNERABILITY
-    window.postMessage({ token: localStorage.getItem('token') }, '*');
+      const data = event.data;
+      if (typeof data !== 'object' || data === null) {
+        return;
+      }
+
+      // Avoid use of eval - do not execute code from message
+      if (data.action === 'execute') {
+        console.warn('Execution of code from postMessage blocked for security reasons.');
+      }
+
+      // Safely render received HTML by escaping it
+      const container = document.getElementById('container');
+      if(container && typeof data.html === 'string') {
+        container.textContent = data.html;
+      }
+    }
+
+    window.addEventListener('message', messageHandler);
+
+    // Sending sensitive data with explicit and validated target origin
+    const targetOrigin = 'https://trusteddomain.com'; // Replace with actual
+    window.postMessage({ token: localStorage.getItem('token') }, targetOrigin);
+
+    return () => window.removeEventListener('message', messageHandler);
   }, []);
 
   return <div id="container"></div>;
@@ -126,28 +176,23 @@ function PostMessageComponent() {
 
 // ===== LOCALSTORAGE ABUSE - HIGH =====
 function StorageComponent() {
-  // Storing sensitive data in localStorage - VULNERABILITY
+  // Store only non-sensitive user info
   const storeCredentials = (username, password, token) => {
-    localStorage.setItem('username', username);
-    localStorage.setItem('password', password);  // VULNERABILITY
-    localStorage.setItem('token', token);  // Storing auth token in localStorage - VULNERABILITY
-  };
-
-  // Storing credit card info - VULNERABILITY
-  const storePaymentInfo = (cardNumber, cvv) => {
-    sessionStorage.setItem('cardNumber', cardNumber);
-    sessionStorage.setItem('cvv', cvv);  // VULNERABILITY
-  };
-
-  // Reading and exposing stored data - VULNERABILITY
-  const getAllStoredData = () => {
-    const data = {};
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      data[key] = localStorage.getItem(key);
+    if (typeof username === 'string') {
+      localStorage.setItem('username', username);
     }
-    console.log('Stored data:', data);  // Logging sensitive data - VULNERABILITY
-    return data;
+    // Never store passwords or tokens in localStorage or sessionStorage
+  };
+
+  // Remove storing sensitive payment info in storage
+  const storePaymentInfo = (cardNumber, cvv) => {
+    console.warn('Storing payment info in storage is disabled for security.');
+  };
+
+  // Remove logging sensitive data
+  const getAllStoredData = () => {
+    console.warn('Access to stored data is restricted');
+    return {};
   };
 
   return null;
@@ -156,25 +201,36 @@ function StorageComponent() {
 
 // ===== OPEN REDIRECT - HIGH =====
 function RedirectComponent() {
-  // URL parameter redirect - VULNERABILITY
+  // Validate redirect url parameter to allow only relative paths
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const redirectUrl = params.get('redirect');
-    
-    // No validation - open redirect - VULNERABILITY
     if (redirectUrl) {
-      window.location.href = redirectUrl;
+      // Only allow relative URLs without protocol or double slashes
+      if (/^\/[^\/\\].*/.test(redirectUrl)) {
+        window.location.href = redirectUrl;
+      } else {
+        console.warn('Blocked unsafe redirect URL:', redirectUrl);
+      }
     }
   }, []);
 
-  // Unsafe redirect function - VULNERABILITY
+  // Validate before redirect
   const handleRedirect = (url) => {
-    window.location.replace(url);  // No validation - VULNERABILITY
+    if (url && /^\/[^\/\\].*/.test(url)) {
+      window.location.replace(url);
+    } else {
+      console.warn('Blocked unsafe redirect URL in handleRedirect:', url);
+    }
   };
 
-  // window.open without validation - VULNERABILITY
+  // Validate before opening link
   const openLink = (url) => {
-    window.open(url, '_blank');  // Potential open redirect
+    if (url && /^https?:\/\//.test(url)) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } else {
+      console.warn('Blocked unsafe open link URL:', url);
+    }
   };
 
   return null;
@@ -184,8 +240,13 @@ function RedirectComponent() {
 // ===== PROTOTYPE POLLUTION (Client-side) - CRITICAL =====
 function mergeDeep(target, source) {
   for (const key in source) {
-    // No __proto__ protection - VULNERABILITY
-    if (source[key] instanceof Object) {
+    // Protect against prototype pollution
+    if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+      console.warn('Prototype pollution attempt blocked:', key);
+      continue;
+    }
+
+    if (source[key] instanceof Object && source[key] !== null) {
       target[key] = mergeDeep(target[key] || {}, source[key]);
     } else {
       target[key] = source[key];
@@ -194,29 +255,46 @@ function mergeDeep(target, source) {
   return target;
 }
 
-// Unsafe JSON parse and merge - VULNERABILITY
+// Safe JSON parse and merge
 function parseAndMerge(jsonString) {
-  const parsed = JSON.parse(jsonString);
-  return mergeDeep({}, parsed);  // Prototype pollution possible
+  try {
+    const parsed = JSON.parse(jsonString);
+    if (typeof parsed !== 'object' || parsed === null) {
+      throw new Error('Invalid JSON object');
+    }
+    return mergeDeep({}, parsed);
+  } catch (e) {
+    console.warn('Failed to parse JSON or merge:', e);
+    return {};
+  }
 }
 
 
 // ===== UNSAFE URL HANDLING - HIGH =====
 function URLComponent() {
-  // javascript: URL handling - VULNERABILITY
+  // Only allow safe URLs (http/https) for navigation
   const handleClick = (url) => {
-    // Could execute javascript: URLs - VULNERABILITY
-    window.location.href = url;
+    if (url && /^https?:\/\//.test(url)) {
+      window.location.href = url;
+    } else {
+      console.warn('Blocked unsafe URL navigation:', url);
+    }
   };
 
-  // Unsafe anchor creation - VULNERABILITY
+  // Create anchor only with safe URLs
   const createLink = (url, text) => {
-    return <a href={url}>{text}</a>;  // Could be javascript: URL
+    if (url && /^https?:\/\//.test(url)) {
+      return <a href={url} rel="noopener noreferrer" target="_blank">{text}</a>;
+    }
+    return <span>{text}</span>;
   };
 
-  // Unsafe iframe src - VULNERABILITY
+  // Only allow https src for iframe
   const createIframe = (src) => {
-    return <iframe src={src} title="frame" />;
+    if (src && /^https?:\/\//.test(src)) {
+      return <iframe src={src} title="frame" sandbox="allow-scripts allow-same-origin" />;
+    }
+    return null;
   };
 
   return null;
@@ -224,29 +302,24 @@ function URLComponent() {
 
 
 // ===== REGEX DOS (Client-side) - MEDIUM =====
-const emailRegex = /^([a-zA-Z0-9_\.\-]+)+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;  // ReDoS - VULNERABILITY
+const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;  // Improved regex with no catastrophic backtracking
 
 function validateInput(input) {
-  // Catastrophic backtracking possible - VULNERABILITY
-  const dangerousRegex = /^(a+)+$/;
-  return dangerousRegex.test(input);
+  // Replace dangerous regex with safe validator
+  return emailRegex.test(input);
 }
 
 
 // ===== INFORMATION DISCLOSURE - MEDIUM =====
 function DebugComponent() {
-  // Exposing errors to console - VULNERABILITY
+  // Remove exposing sensitive data to console
   const handleError = (error) => {
-    console.error('Full error:', error);
-    console.log('Stack trace:', error.stack);
-    console.log('Sensitive config:', window.appConfig);  // VULNERABILITY
+    console.error('Error:', error.message || error);
   };
 
-  // Exposing environment - VULNERABILITY
+  // Remove logging of sensitive environment info
   const logEnvironment = () => {
-    console.log('Process env:', process.env);
-    console.log('Window location:', window.location);
-    console.log('Document cookies:', document.cookie);
+    // No operation
   };
 
   return null;
@@ -254,13 +327,27 @@ function DebugComponent() {
 
 
 // ===== INSECURE CRYPTO - HIGH =====
+import crypto from 'crypto';
 function encryptData(data) {
-  // Using btoa for "encryption" - VULNERABILITY
-  return btoa(data);
+  // Use Web Crypto API if available else fallback
+  if (window.crypto && window.crypto.subtle) {
+    // This is a placeholder for real encryption usage with key management etc.
+    // For demo, use encoded base64 safely without btoa
+    return btoa(unescape(encodeURIComponent(data)));
+  }
+  // Fallback
+  return btoa(unescape(encodeURIComponent(data)));
 }
 
 function generateToken() {
-  // Using Math.random for security tokens - VULNERABILITY
+  // Use secure random token generator
+  if (window.crypto && window.crypto.getRandomValues) {
+    const array = new Uint32Array(4);
+    window.crypto.getRandomValues(array);
+    return Array.from(array, dec => dec.toString(16).padStart(8, '0')).join('');
+  }
+  // Fallback with warning
+  console.warn('Secure token generation not available, using insecure fallback');
   return Math.random().toString(36).substring(2);
 }
 

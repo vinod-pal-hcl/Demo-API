@@ -26,10 +26,17 @@ window.API_CONFIG = {
 
 // Using eval with user input - VULNERABILITY
 window.executeCode = function(code) {
-  eval(code);
+  // Disabled eval usage for security reasons
+  console.warn('Execution of arbitrary code is disabled for security reasons.');
 };
 
-// XSS vulnerability - setting innerHTML - VULNERABILITY
+// XSS vulnerability - setting innerHTML - FIXED
 window.renderHTML = function(html) {
-  document.getElementById('content').innerHTML = html;
+  var content = document.getElementById('content');
+  if (content) {
+    // Create a temporary div to parse HTML and strip potentially dangerous scripts
+    var temp = document.createElement('div');
+    temp.textContent = html; // Convert to text to neutralize scripts
+    content.innerHTML = temp.innerHTML;
+  }
 };

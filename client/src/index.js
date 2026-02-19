@@ -13,23 +13,27 @@ import './index.css';
 import App from './App';
 
 ReactDOM.render(
-  <App />,
+  <App />, 
   document.getElementById('root')
 );
 
 // Exposing sensitive config - VULNERABILITY
 window.API_CONFIG = {
   apiKey: 'pk_test_51HqLyjWDarjtT1zdp7dc',
-  apiUrl: 'http://localhost:5000/api',
-  jwtSecret: 'client_side_secret'
+  apiUrl: 'http://localhost:5000/api'
+  // Removed jwtSecret from client side to protect sensitive data
 };
 
 // Using eval with user input - VULNERABILITY
 window.executeCode = function(code) {
-  eval(code);
+  // Removed eval call to prevent arbitrary code execution
+  console.warn('Execution of arbitrary code is disabled for security reasons.');
 };
 
-// XSS vulnerability - setting innerHTML - VULNERABILITY
+// XSS vulnerability - setting innerHTML - FIXED by sanitizing HTML input
+import DOMPurify from 'dompurify';
+
 window.renderHTML = function(html) {
-  document.getElementById('content').innerHTML = html;
+  const cleanHTML = DOMPurify.sanitize(html);
+  document.getElementById('content').innerHTML = cleanHTML;
 };

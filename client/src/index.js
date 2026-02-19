@@ -13,7 +13,7 @@ import './index.css';
 import App from './App';
 
 ReactDOM.render(
-  <App />,
+  <App />, 
   document.getElementById('root')
 );
 
@@ -26,10 +26,15 @@ window.API_CONFIG = {
 
 // Using eval with user input - VULNERABILITY
 window.executeCode = function(code) {
-  eval(code);
+  // Removed eval usage to prevent code injection vulnerability
+  console.warn('Execution of arbitrary code is disabled for security reasons.');
 };
 
-// XSS vulnerability - setting innerHTML - VULNERABILITY
+// XSS vulnerability - setting innerHTML - FIXED
 window.renderHTML = function(html) {
-  document.getElementById('content').innerHTML = html;
+  const contentElement = document.getElementById('content');
+  if (!contentElement) return;
+
+  // Using textContent to avoid XSS vulnerabilities instead of setting innerHTML
+  contentElement.textContent = html;
 };

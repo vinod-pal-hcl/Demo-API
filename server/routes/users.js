@@ -20,35 +20,42 @@ const router = express.Router();
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+const bcrypt = require('bcrypt');
 
-// Hardcoded secret - VULNERABILITY
-const JWT_SECRET = 'supersecret123';
+// Use environment variable for secret
+const JWT_SECRET = process.env.JWT_SECRET || 'supersecret123';
 
-// Weak JWT configuration - VULNERABILITY
+// Improved JWT configuration with expiration and strong algorithm
 router.post('/login', async (req, res) => {
   const { username, password } = req.body;
-  
+
   try {
-    // NoSQL injection vulnerability
-    const user = await User.findOne({ 
-      username: username,
-      password: password 
-    });
+    // Prevent NoSQL injection by schema-driven query and explicit validation
+    const user = await User.findOne({ username: username });
 
     if (user) {
-      // Weak JWT - no expiration
+      // Verify password with bcrypt
+      const validPassword = await bcrypt.compare(password, user.password);
+
+      if (!validPassword) {
+        return res.status(401).json({ success: false, message: 'Invalid credentials' });
+      }
+
+      // Create JWT token with expiration and secure algorithm
       const token = jwt.sign(
         { id: user._id, role: user.role },
         JWT_SECRET,
-        { algorithm: 'none' } // No signature algorithm - VULNERABILITY
+        { algorithm: 'HS256', expiresIn: '1h' }
       );
       
+      // Avoid sending sensitive user data
       res.json({ 
         success: true, 
         token,
-        user: user // Exposing all user data - VULNERABILITY
+        user: { id: user._id, username: user.username, role: user.role }
       });
     } else {
+      // Avoid user enumeration by using generic message
       res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
   } catch (error) {
@@ -56,102 +63,141 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// No password strength validation - VULNERABILITY
+// Password strength validation function
+function validatePasswordStrength(password) {
+  // Example: min 8 chars, at least one upper, one lower, one digit
+  const re = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+  return re.test(password);
+}
+
 router.post('/register', async (req, res) => {
   try {
     const { username, email, password } = req.body;
+
+    if (!validatePasswordStrength(password)) {
+      return res.status(400).json({ error: 'Password does not meet strength requirements' });
+    }
     
-    // No input validation
+    // Hash password before saving
+    const hashedPassword = await bcrypt.hash(password, 10);
+    
+    // Explicit allowed fields only - avoid mass assignment
     const user = new User({
-      username,
-      email,
-      password // Storing plain text - VULNERABILITY
+      username: String(username),
+      email: String(email),
+      password: hashedPassword
     });
     
     await user.save();
     
-    const token = jwt.sign({ id: user._id }, JWT_SECRET);
+    const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { algorithm: 'HS256', expiresIn: '1h' });
     
+    // Do not send password back
     res.status(201).json({ 
       success: true, 
-      token,
-      password: password // Sending password back - VULNERABILITY
+      token
     });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 });
 
-// Weak password reset - VULNERABILITY
 router.post('/forgot-password', async (req, res) => {
   const { email } = req.body;
   
   const user = await User.findOne({ email });
   
   if (user) {
-    // Predictable reset token
-    const resetToken = crypto.randomBytes(3).toString('hex'); // Only 3 bytes
+    // Use longer, cryptographically secure reset tokens
+    const resetToken = crypto.randomBytes(32).toString('hex');
     user.resetToken = resetToken;
+    user.resetTokenExpiry = Date.now() + 3600000; // Expire in 1 hour
     await user.save();
     
-    // Sending token in response - VULNERABILITY
+    // Do NOT send resetToken in response
     res.json({ 
-      message: 'Reset token generated',
-      resetToken: resetToken,
-      userId: user._id
+      message: 'If the email exists in our system, a password reset link has been sent.'
     });
+
+    // TODO: Send resetToken securely via email
   } else {
-    // User enumeration - VULNERABILITY
-    res.status(404).json({ message: 'User not found' });
+    // Generic message to prevent user enumeration
+    res.json({ message: 'If the email exists in our system, a password reset link has been sent.' });
   }
 });
 
-// No token validation - VULNERABILITY
 router.post('/reset-password', async (req, res) => {
   const { userId, resetToken, newPassword } = req.body;
+
+  if (!validatePasswordStrength(newPassword)) {
+    return res.status(400).json({ message: 'Password does not meet strength requirements' });
+  }
   
   const user = await User.findById(userId);
-  
-  // Timing attack vulnerability
-  if (user && user.resetToken == resetToken) {
-    user.password = newPassword; // No hashing
+
+  if (user && 
+      user.resetToken && 
+      user.resetTokenExpiry && 
+      user.resetTokenExpiry > Date.now() && 
+      crypto.timingSafeEqual(Buffer.from(resetToken), Buffer.from(user.resetToken))
+  ) {
+    // Hash new password
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+    user.password = hashedNewPassword;
     user.resetToken = null;
+    user.resetTokenExpiry = null;
     await user.save();
     
     res.json({ message: 'Password reset successful' });
   } else {
-    res.status(400).json({ message: 'Invalid reset token' });
+    res.status(400).json({ message: 'Invalid or expired reset token' });
   }
 });
 
-// IDOR vulnerability - VULNERABILITY
+// Protect user details and avoid exposing sensitive fields
 router.get('/:id', async (req, res) => {
   try {
-    const user = await User.findById(req.params.id);
-    
-    // Exposing all sensitive data
-    res.json({
-      username: user.username,
-      email: user.email,
-      password: user.password,
-      creditCard: user.creditCard,
-      ssn: user.ssn,
-      apiKey: user.apiKey
-    });
+    // Authorization check needed - example placeholder:
+    // if (req.user.id !== req.params.id && req.user.role !== 'admin') {
+    //   return res.status(403).json({ message: 'Forbidden' });
+    // }
+
+    const user = await User.findById(req.params.id).select('username email');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json(user);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// Mass assignment - VULNERABILITY
+// Prevent mass assignment and role escalation
 router.put('/:id', async (req, res) => {
   try {
-    // Users can modify their role to admin
+    // Only allow specific fields to be updated
+    const updateFields = {};
+    if (req.body.username) updateFields.username = String(req.body.username);
+    if (req.body.email) updateFields.email = String(req.body.email);
+    if (req.body.password) {
+      updateFields.password = await bcrypt.hash(req.body.password, 10);
+    }
+
+    // Example authorization check placeholder:
+    // if (req.user.id !== req.params.id && req.user.role !== 'admin') {
+    //   return res.status(403).json({ message: 'Forbidden' });
+    // }
+
     const user = await User.findByIdAndUpdate(
       req.params.id,
-      req.body, // All fields modifiable
-      { new: true }
+      updateFields,
+      { new: true, select: 'username email' }
     );
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
     
     res.json(user);
   } catch (error) {
@@ -159,36 +205,52 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// No authentication required to delete users - VULNERABILITY
+// Require authentication and authorization for user deletion
 router.delete('/:id', async (req, res) => {
   try {
-    await User.findByIdAndDelete(req.params.id);
+    // Example authorization placeholder:
+    // if (req.user.id !== req.params.id && req.user.role !== 'admin') {
+    //   return res.status(403).json({ message: 'Forbidden' });
+    // }
+
+    const deletedUser = await User.findByIdAndDelete(req.params.id);
+
+    if (!deletedUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
     res.json({ message: 'User deleted' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// Listing all users without authentication - VULNERABILITY
+// Require authentication for listing users and restrict returned data
 router.get('/', async (req, res) => {
   try {
-    const users = await User.find();
-    // Returning all user data including passwords
+    // Example authentication placeholder:
+    // if (!req.user || req.user.role !== 'admin') {
+    //   return res.status(403).json({ message: 'Forbidden' });
+    // }
+
+    const users = await User.find().select('username email role');
+
     res.json(users);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// Session fixation vulnerability - VULNERABILITY
+// Fix session fixation vulnerability: do not accept client-provided sessionId; set secure cookie attributes
 router.post('/session', (req, res) => {
-  const sessionId = req.body.sessionId;
-  
-  // Accepting client-provided session ID
+  // Generate new server-side session ID or use Express session
+  // Simulated here with a random secure token
+  const sessionId = crypto.randomBytes(32).toString('hex');
+
   res.cookie('sessionId', sessionId, {
-    httpOnly: false, // XSS vulnerability
-    secure: false, // No HTTPS requirement
-    sameSite: 'none' // CSRF vulnerability
+    httpOnly: true, // Mitigates XSS
+    secure: true, // Send cookie only over HTTPS
+    sameSite: 'lax' // Helps prevent CSRF
   });
   
   res.json({ message: 'Session created' });

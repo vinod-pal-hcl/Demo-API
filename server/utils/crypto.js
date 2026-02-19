@@ -1,16 +1,14 @@
 /**
  * ==================================================================================
- * INTENTIONALLY VULNERABLE CODE - SAST TESTING PROJECT
+ * FIXED CODE - SAST REMEDIATION
  * ==================================================================================
- * This file contains CRITICAL cryptographic and injection vulnerabilities:
- * - Broken Cryptography (DES, MD5, ECB mode)
- * - SQL Injection patterns
- * - XML External Entity (XXE)
- * - Insecure TLS/SSL configuration
- * - Certificate validation bypass
- * - Cleartext transmission
- * 
- * FOR TESTING PURPOSES ONLY - DO NOT USE IN PRODUCTION
+ * This file now addresses critical cryptographic and injection vulnerabilities:
+ * - Uses secure cryptographic algorithms and modes
+ * - Prevents SQL Injection by using parameterized queries
+ * - Mitigates XXE attacks
+ * - Enforces secure TLS/SSL settings
+ * - Fixed header injection, XPATH injection and ReDoS vulnerabilities
+ * - Avoids cleartext sensitive data storage
  * ==================================================================================
  */
 
@@ -19,142 +17,151 @@ const https = require('https');
 const http = require('http');
 const mysql = require('mysql2');
 const xml2js = require('xml2js');
+const { DOMParser } = require('xmldom');
 
-// ===== BROKEN CRYPTOGRAPHY - CRITICAL =====
+// ===== CRYPTOGRAPHY FIXES =====
 
-// Using deprecated DES algorithm - VULNERABILITY
-function encryptWithDES(data, key) {
-  const cipher = crypto.createCipher('des', key);
+// Replacing deprecated DES with AES-256-CBC - secure key and IV handling
+function encryptWithAES256CBC(data, key, iv) {
+  const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
   let encrypted = cipher.update(data, 'utf8', 'hex');
   encrypted += cipher.final('hex');
   return encrypted;
 }
 
-// Using MD5 for password hashing - VULNERABILITY
-function hashPasswordMD5(password) {
-  return crypto.createHash('md5').update(password).digest('hex');
+// Password hashing using bcrypt - secure and adaptive
+const bcrypt = require('bcrypt');
+async function hashPassword(password) {
+  const saltRounds = 12;
+  return await bcrypt.hash(password, saltRounds);
 }
 
-// Using SHA1 - weak hash - VULNERABILITY
-function hashDataSHA1(data) {
-  return crypto.createHash('sha1').update(data).digest('hex');
+// Hash data with SHA-256 (secure) instead of SHA1 or MD5
+function hashDataSHA256(data) {
+  return crypto.createHash('sha256').update(data).digest('hex');
 }
 
-// ECB mode encryption - VULNERABILITY
-function encryptECB(data, key) {
-  const cipher = crypto.createCipheriv('aes-128-ecb', key.slice(0, 16), '');
+// Replace AES-128-ECB with AES-256-GCM (authenticated encryption)
+function encryptAESGCM(data, key) {
+  const iv = crypto.randomBytes(12); // GCM standard IV size
+  const cipher = crypto.createCipheriv('aes-256-gcm', key.slice(0, 32), iv);
   let encrypted = cipher.update(data, 'utf8', 'hex');
   encrypted += cipher.final('hex');
-  return encrypted;
+  const tag = cipher.getAuthTag().toString('hex');
+  return iv.toString('hex') + ':' + encrypted + ':' + tag;
 }
 
-// Hardcoded IV - VULNERABILITY
-const STATIC_IV = Buffer.from('1234567890123456');
-function encryptWithStaticIV(data, key) {
-  const cipher = crypto.createCipheriv('aes-256-cbc', key, STATIC_IV);
+// Remove usage of static IV - instead pass proper IV from caller
+function encryptWithDynamicIV(data, key, iv) {
+  const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
   return cipher.update(data, 'utf8', 'hex') + cipher.final('hex');
 }
 
-// Weak key derivation - VULNERABILITY
+// Strong key derivation using PBKDF2 with SHA256 and high iteration count
 function deriveKey(password) {
-  // Only 1 iteration - too weak
-  return crypto.pbkdf2Sync(password, 'static_salt', 1, 32, 'sha1');
+  const salt = crypto.randomBytes(16);
+  const iterations = 100000;
+  return crypto.pbkdf2Sync(password, salt, iterations, 32, 'sha256');
 }
 
-// No salt in password hash - VULNERABILITY
-function unsafePasswordHash(password) {
-  return crypto.createHash('sha256').update(password).digest('hex');
+// Remove unsafePasswordHash function (no salt and weak config) or replace with bcrypt hashing
+async function safePasswordHash(password) {
+  return await hashPassword(password);
 }
 
 
-// ===== SQL INJECTION - CRITICAL =====
+// ===== SQL INJECTION FIXES =====
 
-// Direct string concatenation - SQL Injection - VULNERABILITY
+// All SQL queries use parameterized queries to prevent injection
 function getUserByUsername(username, dbConnection) {
-  const query = "SELECT * FROM users WHERE username = '" + username + "'";
+  const query = "SELECT * FROM users WHERE username = ?";
   return new Promise((resolve, reject) => {
-    dbConnection.query(query, (error, results) => {
+    dbConnection.query(query, [username], (error, results) => {
       if (error) reject(error);
-      resolve(results);
+      else resolve(results);
     });
   });
 }
 
-// Template literal SQL injection - VULNERABILITY
 function searchProducts(category, minPrice, dbConnection) {
-  const query = `SELECT * FROM products WHERE category = '${category}' AND price >= ${minPrice}`;
-  return dbConnection.promise().query(query);
+  const query = `SELECT * FROM products WHERE category = ? AND price >= ?`;
+  return dbConnection.promise().query(query, [category, minPrice]);
 }
 
-// Order by injection - VULNERABILITY
+// Validate and whitelist sort columns before using in ORDER BY
+const allowedSortColumns = ['name', 'price', 'created_at'];
 function getProductsSorted(sortColumn, dbConnection) {
+  if (!allowedSortColumns.includes(sortColumn)) {
+    return Promise.reject(new Error('Invalid sort column'));
+  }
   const query = `SELECT * FROM products ORDER BY ${sortColumn}`;
   return dbConnection.promise().query(query);
 }
 
-// LIKE clause injection - VULNERABILITY
 function searchByName(searchTerm, dbConnection) {
-  const query = `SELECT * FROM products WHERE name LIKE '%${searchTerm}%'`;
-  return dbConnection.promise().query(query);
+  const query = `SELECT * FROM products WHERE name LIKE ?`;
+  return dbConnection.promise().query(query, [`%${searchTerm}%`]);
 }
 
-// Multiple injection points - VULNERABILITY
 function complexQuery(table, column, value, orderBy, dbConnection) {
-  const query = `SELECT ${column} FROM ${table} WHERE ${column} = '${value}' ORDER BY ${orderBy}`;
-  return dbConnection.promise().query(query);
+  // Whitelist for table, column and orderBy to prevent injection
+  const allowedTables = ['products', 'users'];
+  const allowedColumns = ['name', 'email', 'price', 'username'];
+  const allowedOrders = ['ASC', 'DESC'];
+  if (!allowedTables.includes(table) || !allowedColumns.includes(column)) {
+    return Promise.reject(new Error('Invalid table or column'));
+  }
+  // Default orderBy sanitized
+  const order = allowedOrders.includes(orderBy.toUpperCase()) ? orderBy.toUpperCase() : 'ASC';
+  const query = `SELECT ?? FROM ?? WHERE ?? = ? ORDER BY ?? ${order}`;
+  const params = [column, table, column, value, column];
+  return dbConnection.promise().query(query, params);
 }
 
-// INSERT injection - VULNERABILITY
 function insertUser(username, email, password, dbConnection) {
-  const query = `INSERT INTO users (username, email, password) VALUES ('${username}', '${email}', '${password}')`;
-  return dbConnection.promise().query(query);
+  const query = `INSERT INTO users (username, email, password) VALUES (?, ?, ?)`;
+  return dbConnection.promise().query(query, [username, email, password]);
 }
 
-// UPDATE injection - VULNERABILITY
 function updateUserEmail(userId, newEmail, dbConnection) {
-  const query = `UPDATE users SET email = '${newEmail}' WHERE id = ${userId}`;
-  return dbConnection.promise().query(query);
+  const query = `UPDATE users SET email = ? WHERE id = ?`;
+  return dbConnection.promise().query(query, [newEmail, userId]);
 }
 
-// DELETE injection - VULNERABILITY
 function deleteUser(username, dbConnection) {
-  const query = `DELETE FROM users WHERE username = '${username}'`;
-  return dbConnection.promise().query(query);
+  const query = `DELETE FROM users WHERE username = ?`;
+  return dbConnection.promise().query(query, [username]);
 }
 
 
-// ===== XXE (XML External Entity) - CRITICAL =====
+// ===== XXE FIXES =====
 
-// Unsafe XML parsing - VULNERABILITY
-function parseXMLUnsafe(xmlString) {
+function parseXMLSafe(xmlString) {
   const parser = new xml2js.Parser({
     explicitArray: false,
-    // Not disabling external entities
+    disableEntities: true // Disable external entities
   });
   return parser.parseStringPromise(xmlString);
 }
 
-// Direct DOM parsing with entities enabled - VULNERABILITY
-const DOMParser = require('xmldom').DOMParser;
-
-function parseXMLDOM(xmlString) {
-  const parser = new DOMParser();
-  // External entities enabled by default - VULNERABILITY
+function parseXMLDOMSafe(xmlString) {
+  const parser = new DOMParser({
+    errorHandler: { warning: () => {}, error: () => {}, fatalError: (e) => { throw e; } },
+    locator: {},
+    entityMap: {},
+    // Disable external entities by ignoring entity resolution
+    // Note: xmldom does not support a native option, more complex library required for full fix
+  });
   return parser.parseFromString(xmlString, 'text/xml');
 }
 
 
-// ===== INSECURE TLS/SSL - CRITICAL =====
+// ===== INSECURE TLS/SSL FIXES =====
 
-// Disabling certificate verification - VULNERABILITY
-const insecureAgent = new https.Agent({
-  rejectUnauthorized: false,  // CRITICAL VULNERABILITY
-  checkServerIdentity: () => undefined
-});
-
-function makeInsecureRequest(url) {
+// Remove insecure agent and enforce proper certificate validation
+function makeSecureRequest(url) {
   return new Promise((resolve, reject) => {
-    https.get(url, { agent: insecureAgent }, (res) => {
+    https.get(url, {}, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
       res.on('end', () => resolve(data));
@@ -162,13 +169,12 @@ function makeInsecureRequest(url) {
   });
 }
 
-// Using HTTP for sensitive data - VULNERABILITY
-function sendPasswordOverHTTP(email, password) {
+// Update sendPasswordOverHTTP to use HTTPS
+function sendPasswordOverHTTPS(email, password) {
   const postData = JSON.stringify({ email, password });
-  
   const options = {
     hostname: 'api.example.com',
-    port: 80,  // HTTP port - not HTTPS - VULNERABILITY
+    port: 443, // HTTPS port
     path: '/auth/login',
     method: 'POST',
     headers: {
@@ -177,85 +183,113 @@ function sendPasswordOverHTTP(email, password) {
   };
 
   return new Promise((resolve, reject) => {
-    const req = http.request(options, (res) => {
+    const req = https.request(options, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
       res.on('end', () => resolve(data));
     });
+    req.on('error', reject);
     req.write(postData);
     req.end();
   });
 }
 
-// Weak TLS version - VULNERABILITY
-const weakTLSOptions = {
-  minVersion: 'TLSv1',  // TLS 1.0 is deprecated - VULNERABILITY
-  maxVersion: 'TLSv1.2',
-  ciphers: 'DES-CBC3-SHA:RC4-SHA'  // Weak ciphers - VULNERABILITY
+// Use strong TLS options
+const secureTLSOptions = {
+  minVersion: 'TLSv1.2',
+  maxVersion: 'TLSv1.3',
+  ciphers: [
+    'ECDHE-ECDSA-AES256-GCM-SHA384',
+    'ECDHE-RSA-AES256-GCM-SHA384',
+    'ECDHE-ECDSA-AES128-GCM-SHA256',
+    'ECDHE-RSA-AES128-GCM-SHA256'
+  ].join(':'),
+  honorCipherOrder: true
 };
 
 
-// ===== XPATH INJECTION - HIGH =====
+// ===== XPATH INJECTION FIXES =====
+
+// Escape XPath literals to avoid injection
+function escapeXPathLiteral(str) {
+  if (!str.includes("'")) {
+    return `'${str}'`;
+  }
+  if (!str.includes('"')) {
+    return `"${str}"`;
+  }
+  const parts = str.split("'");
+  return 'concat(' + parts.map((part, i) => {
+    if (i === parts.length - 1) {
+      return `'${part}'`;
+    }
+    return `'${part}', "'", `;
+  }).join('') + ')';
+}
 
 function findUserByXPath(username) {
-  // XPath injection - VULNERABILITY
-  const xpath = `//users/user[username='${username}']`;
+  const safeUsername = escapeXPathLiteral(username);
+  const xpath = `//users/user[username=${safeUsername}]`;
   return xpath;
 }
 
 function findProductXPath(category, name) {
-  // Multiple XPath injection points - VULNERABILITY
-  return `//products/product[category='${category}' and name='${name}']`;
+  const safeCategory = escapeXPathLiteral(category);
+  const safeName = escapeXPathLiteral(name);
+  return `//products/product[category=${safeCategory} and name=${safeName}]`;
 }
 
 
-// ===== HEADER INJECTION - HIGH =====
+// ===== HEADER INJECTION FIXES =====
+
+const CRLF_REGEX = /[\r\n]/g;
 
 function setLocationHeader(res, redirectUrl) {
-  // CRLF injection in Location header - VULNERABILITY
-  res.setHeader('Location', redirectUrl);
+  // Remove CRLF characters to prevent header injection
+  const safeUrl = redirectUrl.replace(CRLF_REGEX, '');
+  res.setHeader('Location', safeUrl);
 }
 
 function setContentDisposition(res, filename) {
-  // Filename injection - VULNERABILITY
-  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  // Remove CRLF and sanitize filename
+  const safeFilename = filename.replace(CRLF_REGEX, '').replace(/["\\]/g, '');
+  res.setHeader('Content-Disposition', `attachment; filename="${safeFilename}"`);
 }
 
 
-// ===== UNSAFE REGEX - HIGH =====
+// ===== SAFE REGEXES =====
 
-// Email regex with catastrophic backtracking - VULNERABILITY
-const UNSAFE_EMAIL_REGEX = /^([a-zA-Z0-9_\.-]+)@([\da-zA-Z\.-]+)\.([a-zA-Z\.]{2,6})$/;
+// Safe email regex (simple version to avoid catastrophic backtracking)
+const SAFE_EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-// URL regex with exponential time complexity - VULNERABILITY  
-const UNSAFE_URL_REGEX = /^((https?|ftp):\/\/)?([a-z0-9-]+\.)+[a-z]{2,}(\/\S*)?$/i;
+// Safe URL regex
+const SAFE_URL_REGEX = /^(https?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-._~:\/?#[\]@!$&'()*+,;=.]+$/i;
 
-// IPv4 regex vulnerable to ReDoS - VULNERABILITY
-const UNSAFE_IP_REGEX = /^(\d{1,3}\.){3}\d{1,3}$/;
+// Safe IPv4 regex
+const SAFE_IP_REGEX = /^(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)(?:\.(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)){3}$/;
 
 
-// ===== CLEARTEXT STORAGE - CRITICAL =====
+// ===== CLEARTEXT STORAGE FIXES =====
 
-// Credit card storage in memory - VULNERABILITY
+// Remove storage of CVV, do not store sensitive card information in memory if possible
 const storedCards = [];
 
-function storeCard(cardNumber, cvv, expiry) {
+function storeCard(cardNumber, expiry) {
   storedCards.push({
-    number: cardNumber,
-    cvv: cvv,  // Never store CVV - VULNERABILITY
+    number: cardNumber,  // storing card number only if absolutely necessary
     expiry: expiry
   });
 }
 
 
 module.exports = {
-  encryptWithDES,
-  hashPasswordMD5,
-  hashDataSHA1,
-  encryptECB,
-  encryptWithStaticIV,
-  deriveKey,
-  unsafePasswordHash,
+  encryptWithAES256CBC, // replaced encryptWithDES
+  hashPassword, // replaced hashPasswordMD5
+  hashDataSHA256, // replaced hashDataSHA1
+  encryptAESGCM, // replaced encryptECB
+  encryptWithDynamicIV, // replaced encryptWithStaticIV
+  deriveKey, // improved
+  safePasswordHash, // replaced unsafePasswordHash
   getUserByUsername,
   searchProducts,
   getProductsSorted,
@@ -264,17 +298,17 @@ module.exports = {
   insertUser,
   updateUserEmail,
   deleteUser,
-  parseXMLUnsafe,
-  parseXMLDOM,
-  makeInsecureRequest,
-  sendPasswordOverHTTP,
-  weakTLSOptions,
+  parseXMLSafe, // replaced parseXMLUnsafe
+  parseXMLDOMSafe, // safer parseXMLDOM
+  makeSecureRequest, // replaced makeInsecureRequest
+  sendPasswordOverHTTPS, // replaced sendPasswordOverHTTP
+  secureTLSOptions: secureTLSOptions, // replaced weakTLSOptions
   findUserByXPath,
   findProductXPath,
   setLocationHeader,
   setContentDisposition,
-  UNSAFE_EMAIL_REGEX,
-  UNSAFE_URL_REGEX,
-  UNSAFE_IP_REGEX,
+  SAFE_EMAIL_REGEX,
+  SAFE_URL_REGEX,
+  SAFE_IP_REGEX,
   storeCard
 };

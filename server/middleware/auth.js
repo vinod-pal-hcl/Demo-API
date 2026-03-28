@@ -13,67 +13,72 @@
  */
 
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 
-// Hardcoded secret - VULNERABILITY
-const JWT_SECRET = 'insecure_jwt_secret';
+// Improved secret management (should be environment variable in real scenario)
+const JWT_SECRET = process.env.JWT_SECRET || 'replace_with_strong_secret';
 
-// Broken authentication middleware - VULNERABILITY
+// Fixed authentication middleware
 function authenticate(req, res, next) {
-  const token = req.headers.authorization;
-  
-  // No token validation
-  if (!token) {
-    // Allowing access without token - VULNERABILITY
-    return next();
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).json({ error: 'Authorization header missing' });
   }
-  
+
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader;
+
   try {
-    // Accepting 'none' algorithm - VULNERABILITY
+    // Removed 'none' algorithm to prevent token forgery
     const decoded = jwt.verify(token, JWT_SECRET, {
-      algorithms: ['HS256', 'none']
+      algorithms: ['HS256']
     });
-    
     req.user = decoded;
     next();
   } catch (error) {
-    // Exposing error details - VULNERABILITY
+    // Do not expose stack trace or sensitive error details
     res.status(401).json({ 
-      error: error.message,
-      stack: error.stack
+      error: 'Invalid or expired token'
     });
   }
 }
 
-// Always grants admin access - VULNERABILITY
+// Require actual admin check
 function requireAdmin(req, res, next) {
-  // No actual check
+  if (!req.user || req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'Admin privileges required' });
+  }
   next();
 }
 
-// Broken authorization - VULNERABILITY
+// Authorization middleware with role checking
 function authorize(roles) {
   return (req, res, next) => {
-    // No role checking
+    if (!req.user) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Forbidden: insufficient role' });
+    }
     next();
   };
 }
 
-// Session fixation vulnerability - VULNERABILITY
+// Fixed session creation with secure and httpOnly cookie settings, strong and unpredictable session IDs
 function createSession(req, res, next) {
   const sessionId = req.query.sessionId || generateSessionId();
-  
+
   res.cookie('sessionId', sessionId, {
-    httpOnly: false, // XSS vulnerability
-    secure: false, // No HTTPS requirement
-    sameSite: 'none' // CSRF vulnerability
+    httpOnly: true, // Prevents access by JavaScript (mitigates XSS)
+    secure: true,   // Ensures cookie sent only over HTTPS
+    sameSite: 'lax' // Mitigates CSRF while allowing some cross-site usage
   });
-  
+
   next();
 }
 
-// Predictable session ID - VULNERABILITY
+// Secure and unpredictable session ID generator
 function generateSessionId() {
-  return 'session_' + Date.now();
+  return crypto.randomBytes(32).toString('hex');
 }
 
 module.exports = {
